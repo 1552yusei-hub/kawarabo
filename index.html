@@ -1455,6 +1455,12 @@ function setNotifHour(v){
   try { localStorage.setItem(STORE + '.notifhour', String(v)); } catch(e){}
 }
 function hourLabel(h){ return h === 24 ? '0:00（深夜）' : h + ':00'; }
+function restKeySet(){
+  try { return localStorage.getItem(STORE + '.osrest') === '1'; } catch(e){ return false; }
+}
+function setRestKeySet(on){
+  try { on ? localStorage.setItem(STORE + '.osrest', '1') : localStorage.removeItem(STORE + '.osrest'); } catch(e){}
+}
 function notifPanelHTML(){
   var perm = push.permission();
   var hour = notifHour();
@@ -1474,9 +1480,13 @@ function notifPanelHTML(){
         (push.on() ? 'いま設定済み：<b>' + esc(push.appId().slice(0, 8)) + '…</b>' : 'まだ未設定です。') + '</p>' +
       '<div class="field" style="margin-bottom:8px"><label for="osId">OneSignal App ID</label>' +
         '<input id="osId" placeholder="例：1a2b3c4d-1234-5678-9abc-1234567890ab" value="' + (push.on() ? esc(push.appId()) : '') + '"></div>' +
-      '<div class="btns" style="margin-top:0"><button class="btn primary" id="osSave">全員に配る</button>' +
+      '<div class="btns" style="margin-top:0"><button class="btn primary" id="osSave">App ID を全員に配る</button>' +
         (push.on() ? '<button class="btn" id="osSync">いま同期する</button>' : '') + '</div>' +
-      '<div class="note" id="osMsg">App ID の入手方法は <a href="push-setup.html" target="_blank" rel="noopener">「プッシュ通知の設定」</a> にまとめてあります。</div>';
+      '<div class="field" style="margin:14px 0 8px"><label for="osRest">OneSignal REST API Key（送信用・非公開）</label>' +
+        '<input id="osRest" type="password" placeholder="' + (restKeySet() ? '設定済み（変更するときだけ入力）' : 'REST API Key を貼り付け') + '"></div>' +
+      '<div class="btns" style="margin-top:0"><button class="btn" id="osRestSave">RESTキーを保存</button></div>' +
+      '<div class="note" id="osMsg">App ID の入手方法は <a href="push-setup.html" target="_blank" rel="noopener">「プッシュ通知の設定」</a> にまとめてあります。' +
+        '<br><b>GitHub のファイル設定は不要です。</b>Supabase の中で毎正時に送信します。</div>';
   } else {
     idBox = '<div class="note" style="margin-top:14px">アプリを閉じていても届く通知は、管理者が設定すると自動で有効になります。あなたが何か入力する必要はありません。</div>';
   }
@@ -1653,6 +1663,17 @@ function bindSet(){
     }).catch(function(e){
       toast('配れませんでした：' + friendlyErr(e.message) + '（SQLの実行が必要かもしれません）');
     });
+  });
+  var ors = $('#osRestSave');
+  if (ors) ors.addEventListener('click', function(){
+    var rk = $('#osRest').value.trim();
+    if (!rk) { toast('REST API Key を入れてください'); return; }
+    if (!cloud.on()) { toast('クラウド未接続です'); return; }
+    cloud.rpc('config_set', { p_pass:adminPass, p_key:'onesignal_rest_key', p_value:rk }).then(function(){
+      setRestKeySet(true);
+      $('#osRest').value = '';
+      renderSet(); toast('RESTキーを保存しました。これで自動送信が動きます');
+    }).catch(function(e){ toast('保存できませんでした：' + friendlyErr(e.message)); });
   });
   var osSync = $('#osSync');
   if (osSync) osSync.addEventListener('click', function(){ push.sync(); toast('同期しました'); });
@@ -2390,6 +2411,7 @@ function loadRemoteConfig(){
   try { p = cloud.rpc('config_get', {}); } catch(e){ push.init(); return; }
   p.then(function(cfg){
     if (cfg && cfg.onesignal_app_id) push.setRemote(cfg.onesignal_app_id);
+    if (cfg && cfg.has_rest_key) setRestKeySet(true);
     push.init();
   }).catch(function(){ push.init(); });
 }
