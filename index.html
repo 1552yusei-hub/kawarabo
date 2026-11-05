@@ -1,0 +1,1649 @@
+<!doctype html>
+<html lang="ja" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>カワラボ手帳｜KAWAII LAB. 予定管理</title>
+<meta name="description" content="KAWAII LAB. 5グループ＋研究生2チームの予定を、推しごとに追える手帳。">
+<meta name="theme-color" content="#FBF9FD">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700&family=Zen+Maru+Gothic:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#FBF9FD; --card:#FFFFFF;
+  --ink:#171225; --ink2:#5F5870; --ink3:#79718A;
+  --line:#E8E3F0; --line2:#D6CEE4;
+  --pink:#FF2E7E; --pink-ink:#C4005A; --pink-soft:#FFE8F1;
+  --lav:#F2EDFB; --rail:#F7F3FE;
+  --shadow:0 10px 30px -18px rgba(23,18,37,.45);
+  --r:16px;
+  --f-display:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Yu Gothic",sans-serif;
+  --f-body:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic",sans-serif;
+  color-scheme: light;
+}
+html[data-theme="dark"]{
+  --paper:#0F0B16; --card:#191322;
+  --ink:#F4F0FA; --ink2:#CEC6DC; --ink3:#A79EBA;
+  --line:#2A2336; --line2:#3B3249;
+  --pink:#FF5C97; --pink-ink:#FF8FB5; --pink-soft:#3A1224;
+  --lav:#221B2E; --rail:#1F1830;
+  --shadow:0 14px 34px -20px rgba(0,0,0,.9);
+  color-scheme: dark;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; font-family:var(--f-body); color:var(--ink); background-color:var(--paper);
+  background-image:linear-gradient(color-mix(in srgb, var(--ink) 5%, transparent) 1px,transparent 1px);
+  background-size:100% 28px;
+  line-height:1.55; -webkit-font-smoothing:antialiased;
+  transition:background-color .25s ease,color .25s ease;
+}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+a{color:var(--pink-ink);text-decoration-thickness:1px;text-underline-offset:2px}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:6px}
+.app{max-width:940px;margin:0 auto;padding:0 16px;min-height:100vh}
+
+/* topbar */
+.topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:12px 0 10px;background:linear-gradient(var(--paper) 74%,transparent)}
+.brand{display:flex;align-items:center;gap:10px;margin-right:auto;min-width:0}
+.mark{width:34px;height:34px;border-radius:10px;flex:none;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:15px;letter-spacing:-.04em}
+.brand-name{font-family:var(--f-display);font-weight:900;font-size:16px;line-height:1.1}
+.brand-sub{font-size:10.5px;color:var(--ink3);letter-spacing:.1em}
+.icon-btn{width:38px;height:38px;border-radius:50%;flex:none;display:grid;place-items:center;border:1px solid var(--line);background:var(--card);transition:transform .15s}
+.icon-btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.icon-btn svg{width:18px;height:18px}
+.who{font-size:11px;color:var(--ink2);background:var(--lav);padding:5px 10px;border-radius:999px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* hero */
+.hero{position:relative;background:var(--ink);color:var(--paper);border-radius:22px;padding:20px;overflow:hidden;margin-bottom:14px}
+html[data-theme="dark"] .hero{background:linear-gradient(140deg,#2A1040,#150E1F 60%)}
+.hero::after{content:"";position:absolute;right:-46px;top:-46px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,46,126,.95),rgba(255,46,126,0) 68%);pointer-events:none}
+.hero-eyebrow{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.62);display:flex;align-items:center;gap:8px}
+.hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--pink)}
+.hero-main{display:flex;align-items:flex-end;gap:14px;margin-top:6px;flex-wrap:wrap}
+.hero-date{font-family:var(--f-display);font-weight:900;font-size:clamp(42px,12vw,60px);line-height:.95;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.hero-date small{font-size:.34em;font-weight:700;margin-left:6px;color:rgba(255,255,255,.72)}
+.hero-sub{font-size:12.5px;color:rgba(255,255,255,.7);padding-bottom:6px}
+.hero-stats{display:flex;gap:18px;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.14)}
+.stat b{display:block;font-family:var(--f-display);font-weight:900;font-size:22px;line-height:1.1;font-variant-numeric:tabular-nums}
+.stat span{font-size:10.5px;letter-spacing:.1em;color:rgba(255,255,255,.6)}
+.hero-remind{margin-top:14px;background:rgba(255,46,126,.18);border:1px solid rgba(255,46,126,.45);border-radius:12px;padding:9px 12px;font-size:12.5px;display:flex;gap:8px;align-items:center}
+.hero-remind b{color:#FFC2D9}
+.hero-remind a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+
+/* section */
+.sec{display:flex;align-items:baseline;gap:10px;margin:20px 0 10px}
+.sec h2{font-family:var(--f-display);font-weight:900;font-size:17px}
+.sec .count{font-size:11.5px;color:var(--ink3)}
+.sec .spacer{margin-left:auto}
+.sec .mini{font-size:11.5px;color:var(--ink3);margin-left:auto}
+
+/* filters */
+.filters{display:flex;gap:7px;overflow-x:auto;padding:2px 0 8px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.chip{flex:none;display:inline-flex;align-items:center;gap:6px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:12px;font-weight:500;color:var(--ink2);white-space:nowrap;transition:all .15s}
+.chip:hover{border-color:var(--line2)}
+.chip .swatch{width:7px;height:7px;border-radius:50%;background:var(--c,var(--ink3))}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+html[data-theme="dark"] .chip[aria-pressed="true"]{background:var(--pink);border-color:var(--pink);color:#1A0C14}
+
+/* ticket card */
+.cards{display:flex;flex-direction:column;gap:10px}
+.card{position:relative;display:grid;grid-template-columns:64px 1fr;background:var(--card);border:1px solid var(--line);border-radius:var(--r);text-align:left;width:100%;transition:transform .16s,box-shadow .16s,border-color .16s}
+.card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:var(--line2)}
+.card::before,.card::after{content:"";position:absolute;left:56px;width:14px;height:14px;border-radius:50%;background:var(--paper)}
+.card::before{top:-8px}.card::after{bottom:-8px}
+.rail{padding:12px 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;border-right:1px dashed var(--line2);border-radius:var(--r) 0 0 var(--r);background:var(--rail)}
+.rail .m{font-size:10px;letter-spacing:.06em;color:var(--ink3);font-weight:500}
+.rail .d{font-family:var(--f-display);font-weight:900;font-size:25px;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;color:var(--ink)}
+html[data-theme="dark"] .rail{background:#251C33}
+html[data-theme="dark"] .rail .d{color:#FFFFFF}
+html[data-theme="dark"] .rail .m,html[data-theme="dark"] .rail .w{color:#D8D0E6}
+html[data-theme="dark"] .dayhead .dnum{color:#FFFFFF}
+html[data-theme="dark"] .hero-date small{color:#E6DFF2}
+html[data-theme="dark"] .days{color:#C9C0D8}
+html[data-theme="dark"] .meta{color:#CFC7DD}
+html[data-theme="dark"] .gate .foot{color:#A79EBA}
+html[data-theme="dark"] .field label{color:#CFC7DD}
+html[data-theme="dark"] .note{color:#CFC7DD}
+.rail .w{font-size:10px;color:var(--ink3);font-weight:500}
+.rail .w.sun{color:#D64545}html[data-theme="dark"] .rail .w.sun{color:#FF8B8B}
+.rail .w.sat{color:#3D6FD0}html[data-theme="dark"] .rail .w.sat{color:#8FB4FF}
+.body{padding:11px 14px 12px;min-width:0}
+.card-top{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:5px;padding-right:24px}
+.gchip{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;color:var(--c);background:color-mix(in srgb,var(--c) 11%,var(--card));border:1px solid color-mix(in srgb,var(--c) 26%,var(--card));white-space:nowrap}
+html[data-theme="dark"] .gchip{background:color-mix(in srgb,var(--c) 22%,var(--card));border-color:color-mix(in srgb,var(--c) 45%,var(--card))}
+.tchip{font-size:10px;font-weight:700;color:var(--ink2);background:var(--lav);border-radius:5px;padding:2px 6px}
+.tchip.live{background:var(--pink-soft);color:var(--pink-ink)}
+.title{font-size:14.5px;font-weight:700;line-height:1.42}
+.meta{display:flex;gap:9px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-top:5px}
+.meta .t{font-weight:700;color:var(--ink)}
+.meta .t.unknown{font-weight:500;color:var(--ink3)}
+.star{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;color:var(--ink3);transition:all .15s}
+.star:hover{background:var(--pink-soft);color:var(--pink)}
+.star svg{width:16px;height:16px}
+.star.on{color:var(--pink)}
+.star.on svg{fill:var(--pink)}
+.days{position:absolute;right:11px;bottom:10px;font-size:10px;font-weight:700;color:var(--ink3);font-variant-numeric:tabular-nums}
+.days.soon{color:var(--pink-ink);background:var(--pink-soft);padding:2px 7px;border-radius:999px}
+.card.past{opacity:.5}
+.card.oshi-hit{border-color:color-mix(in srgb,var(--pink) 45%,var(--line))}
+
+/* daygroup */
+.daygroup{margin-bottom:16px}
+.dayhead{display:flex;align-items:center;gap:8px;margin:0 2px 8px}
+.dayhead .dnum{font-family:var(--f-display);font-weight:900;font-size:15px;font-variant-numeric:tabular-nums}
+.dayhead .dsub{font-size:11px;color:var(--ink3)}
+.dayhead .rule{flex:1;height:1px;background:var(--line)}
+.dayhead .today-tag{font-size:9.5px;font-weight:700;color:#fff;background:var(--pink);padding:2px 6px;border-radius:999px;letter-spacing:.06em}
+
+/* empty */
+.empty{border:1px dashed var(--line2);border-radius:var(--r);padding:24px 18px;text-align:center;background:var(--card)}
+.empty .etitle{font-family:var(--f-display);font-weight:900;font-size:15px;margin-bottom:4px}
+.empty p{font-size:12.5px;color:var(--ink2);max-width:36em;margin:0 auto}
+.empty .star-demo{color:var(--pink);font-size:22px;line-height:1;margin-bottom:8px}
+
+/* oshi */
+.oshi-hero{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:18px;margin-bottom:14px;position:relative;overflow:hidden}
+.oshi-hero::before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:linear-gradient(var(--pink),#8B5BD6)}
+.oshi-hero .oh-name{font-family:var(--f-display);font-weight:900;font-size:20px;margin:2px 0 2px;padding-left:4px}
+.oshi-hero .oh-sub{font-size:12px;color:var(--ink2);padding-left:4px}
+.member-row{display:flex;gap:8px;overflow-x:auto;padding:4px 0 2px;scrollbar-width:none}
+.member-row::-webkit-scrollbar{display:none}
+.mem{flex:none;width:78px;text-align:center}
+.mem .face{width:56px;height:56px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:19px;color:#fff;background:var(--c,#888);box-shadow:0 0 0 2px var(--card),0 0 0 4px color-mix(in srgb,var(--c) 35%,transparent)}
+.mem .nm{font-size:10.5px;line-height:1.3;color:var(--ink2);display:block}
+.mem .gr{font-size:9px;color:var(--ink3);display:block}
+.oshi-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px}
+.opick{border:1px solid var(--line);border-radius:14px;background:var(--card);padding:9px 6px 8px;text-align:center;transition:all .15s;position:relative}
+.opick:hover{border-color:var(--line2);transform:translateY(-1px)}
+.opick .face{width:44px;height:44px;border-radius:50%;margin:0 auto 6px;display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:16px;color:#fff;background:var(--c,#888)}
+.opick .nm{font-size:10.5px;line-height:1.3;display:block;color:var(--ink)}
+.opick .gr{font-size:9px;color:var(--ink3);display:block}
+.opick[aria-pressed="true"]{border-color:var(--pink);box-shadow:0 0 0 2px color-mix(in srgb,var(--pink) 30%,transparent)}
+.opick[aria-pressed="true"]::after{content:"✓";position:absolute;top:5px;right:6px;width:16px;height:16px;border-radius:50%;background:var(--pink);color:#fff;font-size:10px;line-height:16px;font-weight:700}
+.gsec{margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+.gsec .bar{width:4px;height:15px;border-radius:2px;background:var(--c)}
+.gsec .gname{font-family:var(--f-display);font-weight:900;font-size:14px}
+.gsec .gnum{font-size:10.5px;color:var(--ink3)}
+
+/* panels */
+.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;margin-bottom:12px}
+.panel h3{font-family:var(--f-display);font-weight:900;font-size:15.5px;margin-bottom:4px}
+.panel .lead{font-size:12.5px;color:var(--ink2);margin-bottom:14px}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.steps li{display:grid;grid-template-columns:26px 1fr;gap:10px}
+.steps .no{width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-size:11.5px;font-weight:700}
+.steps b{display:block;font-size:13px;margin-bottom:2px}
+.steps p{font-size:12px;color:var(--ink2)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 14px;border-radius:10px;border:1px solid var(--line2);background:var(--card);font-size:12.5px;font-weight:500;transition:all .15s}
+.btn:hover{background:var(--lav)}
+.btn.primary{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.btn.primary:hover{background:var(--pink-ink);border-color:var(--pink-ink);color:#fff}
+.btn.danger{color:#D64545;border-color:color-mix(in srgb,#D64545 30%,var(--line))}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn svg{width:14px;height:14px}
+.prompt{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.8px;line-height:1.65;background:var(--lav);border:1px solid var(--line);border-radius:12px;padding:12px;white-space:pre-wrap;word-break:break-word;max-height:240px;overflow:auto;color:var(--ink2)}
+textarea{width:100%;min-height:110px;resize:vertical;padding:12px;border-radius:12px;border:1px solid var(--line2);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.6;background:var(--paper);color:var(--ink)}
+.note{font-size:11.5px;color:var(--ink2);background:var(--lav);border-radius:10px;padding:10px 12px;margin-top:12px}
+.note b{color:var(--ink)}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:12px;padding:7px 0;border-bottom:1px dashed var(--line)}
+.kv:last-child{border-bottom:0}
+.kv span{color:var(--ink3)}
+.kv b{font-weight:500}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0}
+.switch .lab{font-size:12.5px}
+.switch .sub{font-size:11px;color:var(--ink3)}
+.tgl{width:46px;height:26px;border-radius:999px;background:var(--line2);position:relative;flex:none;transition:background .2s}
+.tgl::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tgl[aria-pressed="true"]{background:var(--pink)}
+.tgl[aria-pressed="true"]::after{transform:translateX(20px)}
+
+/* tabbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:40;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 0 8px;font-size:9.5px;font-weight:500;color:var(--ink3);transition:color .15s}
+.tabbar svg{width:20px;height:20px}
+.tabbar button[aria-selected="true"]{color:var(--ink)}
+.tabbar button[aria-selected="true"] svg{stroke:var(--pink)}
+main{padding-bottom:110px}
+.view[hidden]{display:none}
+
+/* FAB */
+.fab{position:fixed;right:14px;bottom:calc(96px + env(safe-area-inset-bottom));z-index:45;width:52px;height:52px;border-radius:50%;background:var(--pink);color:#fff;display:grid;place-items:center;box-shadow:0 8px 22px -6px rgba(255,46,126,.7),0 0 0 3px color-mix(in srgb,var(--card) 85%,transparent);transition:transform .15s}
+.fab:hover{transform:scale(1.06)}
+.fab:active{transform:scale(.95)}
+.fab svg{width:24px;height:24px;transition:transform .5s}
+.fab.spin svg{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fab .badge{position:absolute;top:-2px;right:-2px;min-width:18px;height:18px;border-radius:9px;background:var(--ink);color:var(--paper);font-size:10px;font-weight:700;display:none;place-items:center;padding:0 4px}
+.fab .badge.show{display:grid}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:70;display:none;align-items:flex-end;justify-content:center;background:rgba(15,11,22,.5);backdrop-filter:blur(3px)}
+.modal.open{display:flex}
+.sheet{background:var(--paper);width:100%;max-width:560px;max-height:92vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px 18px calc(24px + env(safe-area-inset-bottom));animation:up .22s cubic-bezier(.2,.8,.3,1)}
+@keyframes up{from{transform:translateY(18px);opacity:.6}to{transform:none;opacity:1}}
+.sheet-head{display:flex;align-items:center;margin-bottom:12px}
+.sheet-head h3{font-family:var(--f-display);font-weight:900;font-size:17px}
+.sheet-head .icon-btn{margin-left:auto;width:32px;height:32px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;font-weight:700;color:var(--ink2);margin-bottom:5px;letter-spacing:.04em}
+.field input,.field select{width:100%;padding:10px 11px;border-radius:10px;border:1px solid var(--line2);background:var(--card);font-size:14px;font-family:inherit;color:var(--ink)}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gpick{display:flex;flex-wrap:wrap;gap:6px}
+.gpick button{font-size:11.5px;font-weight:700;padding:6px 10px;border-radius:8px;border:1px solid var(--line2);background:var(--card);color:var(--ink2)}
+.gpick button[aria-pressed="true"]{background:var(--c);border-color:var(--c);color:#fff}
+.detail-body .dtit{font-family:var(--f-display);font-weight:900;font-size:19px;line-height:1.4;margin:6px 0 10px}
+.detail-rows{display:flex;flex-direction:column;gap:9px;margin:14px 0}
+.drow{display:grid;grid-template-columns:76px 1fr;gap:10px;font-size:13px}
+.drow dt{color:var(--ink3);font-size:11.5px;padding-top:2px}
+.drow dd{margin:0}
+.toast{position:fixed;left:50%;bottom:140px;transform:translate(-50%,14px);background:var(--ink);color:var(--paper);font-size:12.5px;padding:10px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:all .22s;z-index:90;max-width:88vw;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* gate */
+.gate{position:fixed;inset:0;z-index:100;display:none;overflow:auto;background:var(--paper);
+  background-image:radial-gradient(600px 380px at 80% -10%,color-mix(in srgb,var(--pink) 22%,transparent),transparent 70%),radial-gradient(520px 340px at 0% 100%,color-mix(in srgb,#8B5BD6 18%,transparent),transparent 70%)}
+.gate.open{display:block}
+.gate-in{max-width:420px;margin:0 auto;padding:40px 22px 60px;min-height:100vh;display:flex;flex-direction:column;justify-content:center}
+.gate .mark{width:46px;height:46px;font-size:19px;border-radius:13px;margin-bottom:18px}
+.gate h1{font-family:var(--f-display);font-weight:900;font-size:26px;line-height:1.25;letter-spacing:-.01em}
+.gate .gl{font-size:13px;color:var(--ink2);margin:8px 0 22px}
+.gate .card-form{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:var(--shadow)}
+.gate .err{font-size:12px;color:#D64545;margin-top:8px;min-height:16px}
+.gate .foot{font-size:11px;color:var(--ink3);margin-top:18px;text-align:center;line-height:1.7}
+.gate .tabs{display:flex;gap:4px;background:var(--lav);padding:4px;border-radius:12px;margin-bottom:16px}
+.gate .tabs button{flex:1;padding:8px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.gate .tabs button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.gate .hint{font-size:11px;color:var(--ink3);margin-top:6px}
+
+@media (min-width:720px){
+  .hero{padding:26px}
+  .card{grid-template-columns:74px 1fr}
+  .card::before,.card::after{left:66px}
+  .rail .d{font-size:29px}
+  .modal{align-items:center}
+  .sheet{border-radius:22px;padding-bottom:24px}
+  .fab{bottom:32px;right:calc(50% - 470px + 20px)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+.seg{display:flex;gap:4px;background:var(--lav);padding:4px;border-radius:12px;margin:4px 0 6px}
+.seg button{flex:1;padding:9px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.seg button[aria-selected="true"]{background:var(--card);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.10)}
+.searchbar{margin-bottom:12px}
+.searchbar input{width:100%;padding:11px 13px;border-radius:11px;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-size:14px;font-family:inherit}
+.row-inline{display:flex;gap:8px}
+.row-inline input{flex:1;padding:10px 12px;border-radius:10px;border:1px solid var(--line2);background:var(--paper);color:var(--ink);font-size:14px;font-family:inherit}
+.frow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.frow:last-child{border-bottom:0}
+.frow b{font-size:13.5px}
+.fsub{font-size:11.5px;color:var(--ink3);margin-left:4px}
+.fbtns{display:flex;gap:6px}
+.table-wrap{overflow-x:auto;margin-top:8px}
+.tbl{width:100%;border-collapse:collapse;font-size:12px}
+.tbl th{text-align:left;font-size:10.5px;letter-spacing:.06em;color:var(--ink3);font-weight:500;padding:6px 8px;border-bottom:1px solid var(--line)}
+.tbl td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.btn.tiny{padding:5px 9px;font-size:11px;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark">KL</div>
+      <div>
+        <div class="brand-name">カワラボ手帳</div>
+        <div class="brand-sub" id="todayChip">KAWAII LAB. SCHEDULE</div>
+      </div>
+    </div>
+    <span class="who" id="whoChip" hidden></span>
+    <button class="icon-btn" id="btnTheme" aria-label="表示モード切替">
+      <svg id="icoSun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg>
+      <svg id="icoMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" hidden><path d="M20 14.5A8.5 8.5 0 019.5 4 8.5 8.5 0 1020 14.5z"/></svg>
+    </button>
+    <button class="icon-btn" id="btnAdd" aria-label="予定を追加" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </header>
+
+  <main>
+    <section class="view" id="view-today"></section>
+    <section class="view" id="view-list" hidden></section>
+    <section class="view" id="view-oshi" hidden></section>
+    <section class="view" id="view-attend" hidden></section>
+    <section class="view" id="view-set" hidden></section>
+  </main>
+
+  <nav class="tabbar" role="tablist" aria-label="画面">
+    <button data-view="today" aria-selected="true" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>今日</button>
+    <button data-view="list" aria-selected="false" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>予定</button>
+    <button data-view="oshi" aria-selected="false" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-9a4 4 0 017-2.6A4 4 0 0119 11c0 4.6-7 9-7 9z"/></svg>推し</button>
+    <button data-view="attend" aria-selected="false" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3.6l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg>参戦予定</button>
+    <button data-view="set" aria-selected="false" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2.2"/><circle cx="10" cy="17" r="2.2"/></svg>設定</button>
+  </nav>
+
+  <button class="fab" id="fabRefresh" aria-label="最新情報に更新">
+    <span class="badge" id="fabBadge">0</span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 11-3-6.7M21 4v5h-5"/></svg>
+  </button>
+</div>
+
+<div class="gate" id="gate"></div>
+
+<div class="modal" id="modalEvent" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h3 id="eventSheetTitle">予定を追加</h3>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <form id="eventForm">
+      <div class="field"><label for="fTitle">タイトル</label><input id="fTitle" required placeholder="例：FRUITS ZIPPER JAPAN TOUR 2026"></div>
+      <div class="row2">
+        <div class="field"><label for="fDate">日付</label><input id="fDate" type="date" required></div>
+        <div class="field"><label for="fType">種類</label><select id="fType">
+          <option value="live">ライブ</option><option value="event">イベント</option><option value="tv">テレビ</option>
+          <option value="radio">ラジオ</option><option value="web">配信</option><option value="birthday">誕生日</option>
+        </select></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="fOpen">開場</label><input id="fOpen" type="time"></div>
+        <div class="field"><label for="fTime">開演</label><input id="fTime" type="time"></div>
+      </div>
+      <div class="field"><label>グループ（複数可）</label><div class="gpick" id="fGroups"></div></div>
+      <div class="field"><label for="fVenue">会場</label><input id="fVenue" placeholder="例：東京ガーデンシアター"></div>
+      <div class="field"><label for="fSource">出典URL</label><input id="fSource" type="url" placeholder="https://"></div>
+      <div class="field"><label for="fNote">メモ</label><input id="fNote" placeholder="例：FC先行 10/12まで"></div>
+      <div class="btns">
+        <button class="btn primary" type="submit" id="fSubmit">保存する</button>
+        <button class="btn" type="button" data-close>キャンセル</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="modal" id="modalDetail" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h3>予定の詳細</h3>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+'use strict';
+
+/* =========================================================
+   設定（ここだけ書き換えれば動きます）
+   ========================================================= */
+const CONFIG = {
+  adminId:   'kawarabo',        // 管理者番号
+  adminPass: 'kawarabo2026',    // 管理者パスワード（初回ログイン後に変更できます）
+  dataUrl:   'events.json',     // 自動更新で読みにいくファイル
+  siteName:  'カワラボ手帳'
+};
+
+/* =========================================================
+   マスターデータ
+   ========================================================= */
+const GROUPS = {
+  FZ:    { name:'FRUITS ZIPPER',     short:'ふるっぱー', color:'#C4153C' },
+  CT:    { name:'CANDY TUNE',        short:'きゃんちゅー', color:'#A86200' },
+  SS:    { name:'SWEET STEADY',      short:'きゅーすと',  color:'#0A7A56' },
+  CS:    { name:'CUTIE STREET',      short:'きゅーすと',  color:'#2A55BE' },
+  MS:    { name:'MORE STAR',         short:'もあすた',   color:'#6C3FC4' },
+  MATES: { name:'KAWAII LAB. MATES', short:'メイツ',     color:'#4F5B6B' },
+  SOUTH: { name:'KAWAII LAB. SOUTH', short:'サウス',     color:'#B04E22' }
+};
+const GKEYS = Object.keys(GROUPS);
+
+/* 短縮名の衝突を避けるため、表示は下で個別に上書き */
+GROUPS.SS.short = 'すいすて';
+GROUPS.CS.short = 'きゅーすと';
+
+const MEMBERS = [
+  { id:'fz1', g:'FZ', n:'月足 天音',   c:'#D62828' },
+  { id:'fz2', g:'FZ', n:'鎮西 寿々歌', c:'#E8590C' },
+  { id:'fz3', g:'FZ', n:'早瀬 ノエル', c:'#F2B705' },
+  { id:'fz4', g:'FZ', n:'櫻井 優衣',   c:'#2E9E6B' },
+  { id:'fz5', g:'FZ', n:'真中 まな',   c:'#2D9CDB' },
+  { id:'fz6', g:'FZ', n:'仲川 瑠夏',   c:'#6741D9' },
+  { id:'fz7', g:'FZ', n:'松本 かれん', c:'#FF6FA5' },
+  { id:'ct1', g:'CT', n:'立花 琴未',   c:'#D62828' },
+  { id:'ct2', g:'CT', n:'南 なつ',     c:'#E8590C' },
+  { id:'ct3', g:'CT', n:'小川 奈々子', c:'#2E9E6B' },
+  { id:'ct4', g:'CT', n:'福山 梨乃',   c:'#2D9CDB' },
+  { id:'ct5', g:'CT', n:'桐原 美月',   c:'#1C64F2' },
+  { id:'ct6', g:'CT', n:'宮野 静',     c:'#6741D9' },
+  { id:'ct7', g:'CT', n:'村川 緋杏',   c:'#FF6FA5' },
+  { id:'ss1', g:'SS', n:'白石 まゆみ', c:'#D62828' },
+  { id:'ss2', g:'SS', n:'庄司 なぎさ', c:'#E8590C' },
+  { id:'ss3', g:'SS', n:'山内 咲奈',   c:'#F2B705' },
+  { id:'ss4', g:'SS', n:'音井 結衣',   c:'#2D9CDB' },
+  { id:'ss5', g:'SS', n:'奥田 彩友',   c:'#1C64F2' },
+  { id:'ss6', g:'SS', n:'塩川 莉世',   c:'#6741D9' },
+  { id:'ss7', g:'SS', n:'栗田 なつか', c:'#FF6FA5' },
+  { id:'cs1', g:'CS', n:'佐野 愛花',   c:'#D62828' },
+  { id:'cs2', g:'CS', n:'川本 笑瑠',   c:'#E8590C' },
+  { id:'cs3', g:'CS', n:'古澤 里紗',   c:'#F2B705' },
+  { id:'cs4', g:'CS', n:'板倉 可奈',   c:'#2E9E6B' },
+  { id:'cs5', g:'CS', n:'梅田 みゆ',   c:'#2D9CDB' },
+  { id:'cs6', g:'CS', n:'増田 彩乃',   c:'#1C64F2' },
+  { id:'cs7', g:'CS', n:'真鍋 凪咲',   c:'#6741D9' },
+  { id:'cs8', g:'CS', n:'桜庭 遥花',   c:'#FF6FA5' },
+  { id:'ms1', g:'MS', n:'新井 心菜',   c:'#E8590C' },
+  { id:'ms2', g:'MS', n:'笹原 なな花', c:'#F2B705' },
+  { id:'ms3', g:'MS', n:'高梨 ゆな',   c:'#2D9CDB' },
+  { id:'ms4', g:'MS', n:'遠藤 まりん', c:'#1C64F2' },
+  { id:'ms5', g:'MS', n:'萩田 そら',   c:'#6741D9' },
+  { id:'ms6', g:'MS', n:'森田 あみ',   c:'#FF6FA5' },
+  { id:'ms7', g:'MS', n:'中山 こはく', c:'#9AA5B1' },
+  { id:'ma1', g:'MATES', n:'青島 もも',   c:'#7A8699' },
+  { id:'ma2', g:'MATES', n:'伊丹 恵玲奈', c:'#7A8699' },
+  { id:'ma3', g:'MATES', n:'加藤 好実',   c:'#7A8699' },
+  { id:'ma4', g:'MATES', n:'佐藤 朱緋',   c:'#7A8699' },
+  { id:'ma5', g:'MATES', n:'嶋﨑 結花',   c:'#7A8699' },
+  { id:'ma6', g:'MATES', n:'曽川 咲葵',   c:'#7A8699' },
+  { id:'ma7', g:'MATES', n:'高山 かほ',   c:'#7A8699' },
+  { id:'ma8', g:'MATES', n:'辻 りりか',   c:'#7A8699' },
+  { id:'ma9', g:'MATES', n:'中森 玲緒奈', c:'#7A8699' },
+  { id:'ma10',g:'MATES', n:'橋本 けいな', c:'#7A8699' },
+  { id:'ma11',g:'MATES', n:'山下 ここ',   c:'#7A8699' },
+  { id:'ma12',g:'MATES', n:'横山 かのん', c:'#7A8699' },
+  { id:'so1', g:'SOUTH', n:'有村 心晴',  c:'#B04E22' },
+  { id:'so2', g:'SOUTH', n:'大川 世莉',  c:'#B04E22' },
+  { id:'so3', g:'SOUTH', n:'門倉 彩花',  c:'#B04E22' },
+  { id:'so4', g:'SOUTH', n:'黒田 真央',  c:'#B04E22' },
+  { id:'so5', g:'SOUTH', n:'澤村 いろは', c:'#B04E22' },
+  { id:'so6', g:'SOUTH', n:'濵嵜 愛子',  c:'#B04E22' },
+  { id:'so7', g:'SOUTH', n:'福本 楓',    c:'#B04E22' },
+  { id:'so8', g:'SOUTH', n:'松島 吏央',  c:'#B04E22' },
+  { id:'so9', g:'SOUTH', n:'松田 奈々',  c:'#B04E22' },
+  { id:'so10',g:'SOUTH', n:'森野 めね',  c:'#B04E22' }
+];
+const MEMBYID = {};
+MEMBERS.forEach(function(m){ MEMBYID[m.id] = m; });
+
+const TYPES = { live:'ライブ', event:'イベント', tv:'テレビ', radio:'ラジオ', web:'配信', birthday:'誕生日' };
+const WEEK = ['日','月','火','水','木','金','土'];
+const STORE = 'kawarabo.v2';
+
+const KAWAI = 'https://kawaiilab.asobisystem.com';
+
+/* date, open, start, groups, type, title, venue, source */
+const RAW = [
+['2026-11-05','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-','広島文化学園HBGホール',KAWAI+'/live_information/detail/40043'],
+['2026-11-05','','','CS','web','Amazon Music presents『オトバズ』','','https://cutiestreet.asobisystem.com/news/detail/94554'],
+['2026-11-05','','','CS','tv','TBS『ニンゲン観察バラエティ モニタリング』','','https://cutiestreet.asobisystem.com/news/detail/94640'],
+['2026-11-06','16:30','18:00','CT,SS,CS,MS','live','KAWAII LAB. ファンクラブ限定フリーライブ','東京ガーデンシアター',KAWAI+'/live_information/detail/47110'],
+['2026-11-06','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-（広島2日目）','広島文化学園HBGホール','https://fruitszipper.asobisystem.com/live_information/detail/40044'],
+['2026-11-06','','','FZ','radio','RKBラジオ『あまねきのねえ、聞いて？』（月足）','','https://fruitszipper.asobisystem.com/news/detail/88339'],
+['2026-11-07','','','FZ,SS,CS','event',"LARME FES'26",'東京ガーデンシアター','https://fruitszipper.asobisystem.com/live_information/detail/44469'],
+['2026-11-08','','','FZ','live','FRUITS ZIPPER FANCLUB LIVE -じょい！×３-','東京ガーデンシアター','https://fruitszipper.asobisystem.com/live_information/detail/47131'],
+['2026-11-08','','','CS','event','ミニライブ＆お渡し会','イオンモール白山 平面駐車場','https://cutiestreet.asobisystem.com/live_information/detail/45466'],
+['2026-11-08','','','MATES','web','KAWAII LAB. MATES 11月すきトーク','オンライン',KAWAI+'/news/detail/95075'],
+['2026-11-08','','','CS','birthday','古澤里紗 バースデー','','https://cutiestreet.asobisystem.com/news/detail/56516'],
+['2026-11-09','','','CS','live','古澤里紗 生誕祭 2026','SGCホール有明','https://cutiestreet.asobisystem.com/live_information/detail/46336'],
+['2026-11-10','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','米子コンベンションセンター（鳥取）','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-11-10','','','FZ','radio','ニッポン放送『FRUITS ZIPPERのオールナイトニッポンX』','','https://fruitszipper.asobisystem.com/news/detail/88344'],
+['2026-11-11','','','CS','live','板倉可奈 生誕祭 2026','SGCホール有明','https://cutiestreet.asobisystem.com/live_information/detail/46338'],
+['2026-11-11','','','CS','birthday','板倉可奈 バースデー','','https://cutiestreet.asobisystem.com/news/detail/56523'],
+['2026-11-11','','','FZ','tv','読売テレビ『ベストヒット歌謡祭2026』','','https://fruitszipper.asobisystem.com/news/detail/95088'],
+['2026-11-12','17:00','18:00','MATES','live','KAWAII LAB. MATES 定期公演Vol.29 〜メイツ祭2026〜','ヒューリックホール東京',KAWAI+'/news/detail/92368'],
+['2026-11-12','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','広島文化学園HBGホール','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-11-12','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-','札幌市民芸術劇場 hitaru','https://fruitszipper.asobisystem.com/live_information/detail/40045'],
+['2026-11-13','','','SS','live','SWEET STEADY JAPAN TOUR 2026','厚木市文化会館','https://sweetsteady.asobisystem.com/live_information/detail/43906'],
+['2026-11-13','','','FZ','radio','RKBラジオ『あまねきのねえ、聞いて？』（月足）','','https://fruitszipper.asobisystem.com/news/detail/88340'],
+['2026-11-14','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-','東京ガーデンシアター','https://fruitszipper.asobisystem.com/live_information/detail/40046'],
+['2026-11-14','','','CS','live','CUTIE STREET JAPAN ARENA TOUR 2026 -AUTUMN-','広島グリーンアリーナ','https://cutiestreet.asobisystem.com/live_information/detail/40366'],
+['2026-11-15','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-','東京ガーデンシアター','https://fruitszipper.asobisystem.com/live_information/detail/40047'],
+['2026-11-15','','','CS','live','CUTIE STREET JAPAN ARENA TOUR 2026 -AUTUMN-','広島グリーンアリーナ','https://cutiestreet.asobisystem.com/live_information/detail/40367'],
+['2026-11-15','','','FZ','radio','さめラジ！（早瀬）','','https://fruitszipper.asobisystem.com/news/detail/92819'],
+['2026-11-16','','','SS','live','私立恵比寿中学 放課後ロッケンロール -HYPER- 2026','','https://sweetsteady.asobisystem.com/live_information/detail/46634'],
+['2026-11-17','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','新潟県民会館','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-11-17','','','FZ','radio','ニッポン放送『FRUITS ZIPPERのオールナイトニッポンX』','','https://fruitszipper.asobisystem.com/news/detail/88345'],
+['2026-11-19','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','本多の森北電ホール（石川）','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-11-20','','','FZ','radio','RKBラジオ『あまねきのねえ、聞いて？』（月足）','','https://fruitszipper.asobisystem.com/news/detail/88341'],
+['2026-11-21','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-','沖縄コンベンションセンター 劇場棟','https://fruitszipper.asobisystem.com/live_information/detail/40048'],
+['2026-11-21','','','SS,MS','event','TGC TOYAMA 2026 by TOKYO GIRLS COLLECTION','','https://sweetsteady.asobisystem.com/live_information/detail/44463'],
+['2026-11-22','','','FZ','live','FRUITS ZIPPER JAPAN TOUR 2026 -AUTUMN-','沖縄コンベンションセンター 劇場棟','https://fruitszipper.asobisystem.com/live_information/detail/40049'],
+['2026-11-22','','','SS','event','WONDERLIVET 2026','','https://sweetsteady.asobisystem.com/live_information/detail/44465'],
+['2026-11-23','','','MS','event','ちかっぱ祭2026','マリンメッセ福岡B館',KAWAI+'/live_information/detail/43936'],
+['2026-11-23','','','FZ,CT,SS,CS,MS','tv','CS放送『CDTV ライブ！ライブ！秋の大感謝祭2026』','',KAWAI+'/news/detail/93371'],
+['2026-11-23','','','CS','event','大特典会 in 北海道','アクセスサッポロ','https://cutiestreet.asobisystem.com/live_information/detail/45470'],
+['2026-11-24','17:30','19:00','FZ','live','FRUITS ZIPPER 鎮西寿々歌 生誕祭 2026','SGCホール有明','https://fruitszipper.asobisystem.com/live_information/detail/45704'],
+['2026-11-24','','','FZ','birthday','鎮西寿々歌 バースデー','','https://fruitszipper.asobisystem.com/news/detail/56293'],
+['2026-11-24','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','新来島高知重工ホール オレンジホール','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-11-25','17:00','18:00','MS','live','MORE STAR 単独ライブ 7th STAR','ヒューリックホール東京','https://morestar.asobisystem.com/live_information/detail/45677'],
+['2026-11-25','','','MATES','birthday','嶋﨑結花 バースデー','',KAWAI+'/news/detail/56286'],
+['2026-11-26','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','レクザムホール 大ホール（香川）','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-11-26','','','CS','live','佐野愛花 生誕祭 2026','SGCホール有明','https://cutiestreet.asobisystem.com/live_information/detail/46341'],
+['2026-11-26','','','CS','birthday','佐野愛花 バースデー','','https://cutiestreet.asobisystem.com/news/detail/56521'],
+['2026-11-27','','','FZ,CS','event','GIFT〜Girls Idol Festival Tokyo〜','SGCホール有明','https://fruitszipper.asobisystem.com/live_information/detail/44009'],
+['2026-11-27','','','FZ','radio','RKBラジオ『あまねきのねえ、聞いて？』（月足）','','https://fruitszipper.asobisystem.com/news/detail/88342'],
+['2026-11-28','','','CS','live','CUTIE STREET JAPAN ARENA TOUR 2026 -AUTUMN-','IGアリーナ','https://cutiestreet.asobisystem.com/live_information/detail/40368'],
+['2026-11-29','','','CS','live','CUTIE STREET JAPAN ARENA TOUR 2026 -AUTUMN-','IGアリーナ','https://cutiestreet.asobisystem.com/live_information/detail/40369'],
+['2026-11-29','','','FZ,SS','event','GIFT〜Girls Idol Festival Tokyo〜','TOYOTA ARENA TOKYO','https://fruitszipper.asobisystem.com/live_information/detail/44010'],
+['2026-11-30','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','福岡サンパレス','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-01','17:30','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN-','大分iichikoグランシアタ','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-03','17:30','19:00','CT','live','CANDY TUNE 村川緋杏 生誕祭 2026','SGCホール有明','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-08','17:30','19:00','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN- 東京公演','東京ガーデンシアター','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-09','17:00','18:30','CT','live','CANDY TUNE JAPAN TOUR 2026 -AUTUMN- 東京公演','東京ガーデンシアター','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-12','15:00','17:00','FZ,CT,SS,CS,MS,MATES,SOUTH','live','KAWAII LAB. Christmas SESSION 2026 Day1','有明アリーナ','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-13','14:00','16:00','FZ,CT,SS,CS,MS,MATES,SOUTH','live','KAWAII LAB. Christmas SESSION 2026 Day2','有明アリーナ','https://candytune.asobisystem.com/news/detail/43700'],
+['2026-12-16','17:30','19:00','CT','live','CANDY TUNE 福山梨乃 生誕祭 2026','SGCホール有明','https://candytune.asobisystem.com/news/detail/43700'],
+['2027-01-23','15:00','16:30','FZ','live','FRUITS ZIPPERのオールナイトニッポンX in 横浜アリーナ','横浜アリーナ','https://fruitszipper.asobisystem.com/news/detail/43696'],
+['2027-01-30','15:00','17:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','宮城セキスイハイムスーパーアリーナ',KAWAI+'/news/detail/92410'],
+['2027-01-31','14:00','16:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','宮城セキスイハイムスーパーアリーナ',KAWAI+'/news/detail/92410'],
+['2027-02-13','15:00','17:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','Kアリーナ横浜',KAWAI+'/news/detail/92410'],
+['2027-02-14','14:00','16:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','Kアリーナ横浜',KAWAI+'/news/detail/92410'],
+['2027-02-20','15:00','17:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','IGアリーナ（愛知）',KAWAI+'/news/detail/92410'],
+['2027-02-21','14:00','16:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','IGアリーナ（愛知）',KAWAI+'/news/detail/92410'],
+['2027-03-20','15:00','17:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','GLION ARENA KOBE',KAWAI+'/news/detail/92410'],
+['2027-03-21','14:00','16:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','GLION ARENA KOBE',KAWAI+'/news/detail/92410'],
+['2027-04-03','15:00','17:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','マリンメッセ福岡A館',KAWAI+'/news/detail/92410'],
+['2027-04-04','14:00','16:00','FZ,CT,SS,CS,MS','live','KAWAII LAB. 5th ANNIVERSARY TOUR','マリンメッセ福岡A館',KAWAI+'/news/detail/92410']
+];
+
+const SEED = RAW.map(function(r, i){
+  return {
+    id:'s' + (i + 1), date:r[0], open:r[1], time:r[2],
+    groups:r[3].split(',').filter(function(g){ return GROUPS[g]; }),
+    type: TYPES[r[4]] ? r[4] : 'live',
+    title:r[5], venue:r[6], source:r[7], note:''
+  };
+});
+
+/* =========================================================
+   クラウド接続（Supabase / 無料）
+   URLとキーを設定画面から貼るだけで有効になります。
+   未設定のときは「この端末だけモード」で動きます。
+   ========================================================= */
+const cloud = {
+  cfg: function(){
+    try { return JSON.parse(localStorage.getItem(STORE + '.cloud') || 'null'); } catch(e){ return null; }
+  },
+  saveCfg: function(url, key){
+    var c = { url:String(url || '').trim().replace(/\/+$/, ''), key:String(key || '').trim() };
+    if (!c.url || !c.key) localStorage.removeItem(STORE + '.cloud');
+    else localStorage.setItem(STORE + '.cloud', JSON.stringify(c));
+  },
+  on: function(){
+    var c = this.cfg();
+    return !!(c && c.url && c.key);
+  },
+  rpc: function(fn, args){
+    var c = this.cfg();
+    if (!c) return Promise.reject(new Error('クラウド未接続'));
+    return fetch(c.url + '/rest/v1/rpc/' + fn, {
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':c.key,
+        'Authorization':'Bearer ' + c.key
+      },
+      body: JSON.stringify(args || {})
+    }).then(function(r){
+      return r.text().then(function(t){
+        var data = null;
+        try { data = t ? JSON.parse(t) : null; } catch(e){ data = t; }
+        if (!r.ok) {
+          var msg = (data && (data.message || data.hint || data.error)) || ('HTTP ' + r.status);
+          throw new Error(msg);
+        }
+        return data;
+      });
+    });
+  }
+};
+
+/* 端末だけモードのユーザー保管 */
+function readUsers(){
+  try { return JSON.parse(localStorage.getItem(STORE + '.users') || '{}'); } catch(e){ return {}; }
+}
+function writeUsers(u){
+  try { localStorage.setItem(STORE + '.users', JSON.stringify(u)); } catch(e){}
+}
+
+/* =========================================================
+   状態・保存・共通ユーティリティ
+   ========================================================= */
+let events = [];
+let me = null;                    // {nick, token, oshi:[], atts:[]}
+let isAdmin = false;
+let adminPass = '';
+let filterGroups = new Set();
+let selDate = null;
+let editingId = null;
+let picked = new Set();
+let lastRefresh = null;
+let friends = { list:[], incoming:[], outgoing:[], err:'' };
+let attendSeg = 'mine';
+
+const $ = function(s, r){ return (r || document).querySelector(s); };
+const $$ = function(s, r){ return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+const NOW = new Date();
+const TODAY_S = ymd(NOW);
+
+function pad(n){ return String(n).padStart(2, '0'); }
+function ymd(d){ return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function parseD(s){ var p = String(s).split('-').map(Number); return new Date(p[0], p[1] - 1, p[2]); }
+function daysFrom(s){
+  var t = new Date(NOW.getFullYear(), NOW.getMonth(), NOW.getDate());
+  return Math.round((parseD(s) - t) / 86400000);
+}
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c];
+  });
+}
+function hash(s){
+  var h = 5381;
+  for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return String(h >>> 0);
+}
+function sortEv(a, b){
+  if (a.date !== b.date) return a.date < b.date ? -1 : 1;
+  return (a.time || '99:99') < (b.time || '99:99') ? -1 : 1;
+}
+function evKey(ev){ return ev.date + '|' + ev.title; }
+function save(){
+  try {
+    localStorage.setItem(STORE, JSON.stringify({ v:3, events:events, me:me, lastRefresh:lastRefresh }));
+  } catch(e){}
+}
+function load(){
+  var raw = null;
+  try { raw = localStorage.getItem(STORE); } catch(e){}
+  if (raw) {
+    try {
+      var d = JSON.parse(raw);
+      if (d && Array.isArray(d.events) && d.events.length) events = d.events;
+      if (d && d.me) me = d.me;
+      if (d && d.lastRefresh) lastRefresh = d.lastRefresh;
+    } catch(e){}
+  }
+  if (!events.length) events = SEED.map(function(e){ return Object.assign({}, e); });
+  if (me) {
+    if (!Array.isArray(me.atts)) me.atts = [];
+    if (!Array.isArray(me.oshi)) me.oshi = [];
+  }
+}
+
+/* ---------- 参戦予定 ---------- */
+function isAttending(key){
+  return !!(me && me.atts && me.atts.some(function(a){ return a.key === key; }));
+}
+function snapshot(ev){
+  return { key:evKey(ev), date:ev.date, title:ev.title, time:ev.time || '', open:ev.open || '',
+           venue:ev.venue || '', groups:(ev.groups || []).slice(), type:ev.type || 'live' };
+}
+function toggleAttend(ev){
+  if (!me) { openGate(); return; }
+  var key = evKey(ev);
+  var i = me.atts.findIndex(function(a){ return a.key === key; });
+  var adding = i < 0;
+  if (adding) me.atts.push(snapshot(ev)); else me.atts.splice(i, 1);
+  save(); renderAll();
+  toast(adding ? '参戦予定に追加しました' : '参戦予定から外しました');
+  if (cloud.on() && me.token) {
+    var call = adding
+      ? cloud.rpc('attend_add', { p_token:me.token, p_key:key, p_date:ev.date, p_title:ev.title,
+          p_time:ev.time || '', p_venue:ev.venue || '', p_groups:ev.groups || [], p_open:ev.open || '', p_type:ev.type || 'live' })
+      : cloud.rpc('attend_del', { p_token:me.token, p_key:key });
+    call.catch(function(err){ toast('同期できませんでした：' + err.message); });
+  }
+}
+
+/* ---------- 推し ---------- */
+function oshiMembers(){ return (me && me.oshi ? me.oshi : []).map(function(id){ return MEMBYID[id]; }).filter(Boolean); }
+function oshiGroups(){
+  var s = new Set();
+  oshiMembers().forEach(function(m){ s.add(m.g); });
+  return s;
+}
+function isOshiEvent(ev){
+  var og = oshiGroups();
+  if (!og.size) return false;
+  return (ev.groups || []).some(function(g){ return og.has(g); });
+}
+
+/* =========================================================
+   共通パーツ
+   ========================================================= */
+function groupChips(gs, max){
+  max = max || 2;
+  var html = (gs || []).slice(0, max).map(function(k){
+    var g = GROUPS[k]; if (!g) return '';
+    return '<span class="gchip" style="--c:' + g.color + '">' + esc(g.short) + '</span>';
+  }).join('');
+  if ((gs || []).length > max) html += '<span class="gchip" style="--c:#6B6478">+' + (gs.length - max) + '</span>';
+  return html;
+}
+function timeLabel(ev){
+  if (ev.time) return '<span class="t">' + esc(ev.time) + ' 開演</span>' + (ev.open ? '<span>' + esc(ev.open) + ' 開場</span>' : '');
+  return '<span class="t unknown">時間未定</span>' + (ev.open ? '<span>' + esc(ev.open) + ' 開場</span>' : '');
+}
+function daysLabel(ev){
+  var d = daysFrom(ev.date);
+  if (d < 0) return { txt:'終了', soon:false };
+  if (d === 0) return { txt:'今日', soon:true };
+  if (d === 1) return { txt:'明日', soon:true };
+  return { txt:'あと' + d + '日', soon:d <= 3 };
+}
+function cardHTML(ev, opts){
+  opts = opts || {};
+  var d = parseD(ev.date);
+  var g = GROUPS[(ev.groups || [])[0]] || { color:'#9A93A8' };
+  var dl = daysLabel(ev);
+  var on = isAttending(evKey(ev));
+  var meta = [timeLabel(ev)];
+  if (ev.venue) meta.push('<span>' + esc(ev.venue) + '</span>');
+  var cls = 'card' + (daysFrom(ev.date) < 0 ? ' past' : '') + (isOshiEvent(ev) ? ' oshi-hit' : '');
+  return '<div class="' + cls + '" role="button" tabindex="0" data-id="' + esc(ev.id || evKey(ev)) + '" style="--c:' + g.color + '">' +
+    '<div class="rail"><span class="m">' + (d.getMonth() + 1) + '月</span>' +
+      '<span class="d">' + d.getDate() + '</span>' +
+      '<span class="w ' + (d.getDay() === 0 ? 'sun' : d.getDay() === 6 ? 'sat' : '') + '">' + WEEK[d.getDay()] + '</span></div>' +
+    '<div class="body"><div class="card-top">' + groupChips(ev.groups, 2) +
+        '<span class="tchip ' + ev.type + '">' + (TYPES[ev.type] || '予定') + '</span></div>' +
+      '<div class="title">' + esc(ev.title) + '</div>' +
+      '<div class="meta">' + meta.join('') + '</div></div>' +
+    '<button class="star ' + (on ? 'on' : '') + '" data-att="' + esc(ev.id || evKey(ev)) + '" aria-label="参戦予定" aria-pressed="' + on + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.6l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg></button>' +
+    (opts.days === false ? '' : '<span class="days ' + (dl.soon ? 'soon' : '') + '">' + dl.txt + '</span>') +
+  '</div>';
+}
+function emptyHTML(title, text, extra){
+  return '<div class="empty"><div class="star-demo">☆</div><div class="etitle">' + esc(title) + '</div><p>' + esc(text) + '</p>' + (extra || '') + '</div>';
+}
+function byDate(list){
+  var o = {};
+  list.forEach(function(e){ (o[e.date] = o[e.date] || []).push(e); });
+  return o;
+}
+function datedGroups(list, todayTag){
+  var o = byDate(list);
+  return Object.keys(o).sort().map(function(date){
+    var d = parseD(date), n = daysFrom(date);
+    return '<div class="daygroup"><div class="dayhead">' +
+      '<span class="dnum">' + (d.getMonth() + 1) + '月' + d.getDate() + '日</span>' +
+      '<span class="dsub">' + WEEK[d.getDay()] + '曜日</span><span class="rule"></span>' +
+      (todayTag && n === 0 ? '<span class="today-tag">TODAY</span>' : '') +
+      '</div><div class="cards">' + o[date].sort(sortEv).map(function(e){ return cardHTML(e, { days:false }); }).join('') + '</div></div>';
+  }).join('');
+}
+function toast(msg){
+  var t = $('#toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ t.classList.remove('show'); }, 3000);
+}
+
+/* =========================================================
+   ログイン / アカウント作成
+   ========================================================= */
+let gateMode = 'login';
+function openGate(){
+  gateMode = 'login';
+  $('#gate').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderGate();
+}
+function closeGate(){
+  $('#gate').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function renderGate(){
+  var login = gateMode === 'login';
+  $('#gate').innerHTML = '<div class="gate-in">' +
+    '<div class="mark">KL</div>' +
+    '<h1>推しの予定を、<br>ひとつの手帳に。</h1>' +
+    '<p class="gl">KAWAII LAB. 5グループ＋研究生2チームの予定をまとめて追える、ファン同士の非公式手帳です。</p>' +
+    '<div class="card-form">' +
+      '<div class="tabs" role="tablist">' +
+        '<button data-gm="login" aria-selected="' + login + '">ログイン</button>' +
+        '<button data-gm="signup" aria-selected="' + (!login) + '">アカウント作成</button>' +
+      '</div>' +
+      '<form id="gateForm">' +
+        '<div class="field"><label for="gNick">ニックネーム</label>' +
+          '<input id="gNick" autocomplete="nickname" required maxlength="16" placeholder="例：かわらぼ太郎"></div>' +
+        '<div class="field"><label for="gPass">パスワード（4文字以上）</label>' +
+          '<input id="gPass" type="password" autocomplete="' + (login ? 'current-password' : 'new-password') + '" required minlength="4" placeholder="••••••"></div>' +
+        (login ? '' : '<div class="field"><label for="gPass2">パスワード（確認）</label>' +
+          '<input id="gPass2" type="password" required minlength="4" placeholder="••••••"></div>') +
+        '<div class="err" id="gErr"></div>' +
+        '<div class="btns" style="margin-top:6px">' +
+          '<button class="btn primary" type="submit" id="gSubmit" style="width:100%;justify-content:center">' +
+            (login ? 'ログインする' : '作成してはじめる') + '</button>' +
+        '</div>' +
+      '</form>' +
+      '<p class="hint">' + (cloud.on()
+        ? 'ニックネームとパスワードだけで使えます。メールアドレスは不要です。'
+        : 'いまは「この端末だけモード」です。同じ端末の中でだけ保存されます。') + '</p>' +
+    '</div>' +
+    '<p class="foot">予定は管理者が更新します。あなたの推し・参戦予定は<br>フレンドにだけ見えます。</p>' +
+  '</div>';
+
+  $$('#gate [data-gm]').forEach(function(b){
+    b.addEventListener('click', function(){ gateMode = b.dataset.gm; renderGate(); });
+  });
+  $('#gateForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var nick = $('#gNick').value.trim();
+    var pw = $('#gPass').value;
+    var err = $('#gErr');
+    if (!nick) { err.textContent = 'ニックネームを入れてください'; return; }
+    if (pw.length < 4) { err.textContent = 'パスワードは4文字以上にしてください'; return; }
+    if (gateMode === 'signup' && pw !== $('#gPass2').value) { err.textContent = 'パスワードが一致しません'; return; }
+
+    var btn = $('#gSubmit');
+    btn.disabled = true; btn.textContent = '確認中…';
+    err.textContent = '';
+
+    if (cloud.on()) {
+      var fn = gateMode === 'signup' ? 'signup' : 'login';
+      cloud.rpc(fn, { p_nick:nick, p_pass:pw }).then(function(res){
+        var p = Array.isArray(res) ? res[0] : res;
+        if (!p || !p.token) throw new Error('ログインできませんでした');
+        me = { nick:p.nick || nick, token:p.token, oshi:p.oshi || [], atts:p.atts || [] };
+        save(); closeGate(); syncChrome(); renderAll();
+        if (!me.oshi.length) startOnboarding();
+        else { toast(me.nick + 'さん、おかえりなさい'); maybeNotify(); }
+      }).catch(function(e2){
+        btn.disabled = false; btn.textContent = gateMode === 'signup' ? '作成してはじめる' : 'ログインする';
+        err.textContent = friendlyErr(e2.message);
+      });
+      return;
+    }
+
+    var users = readUsers();
+    if (gateMode === 'signup') {
+      if (users[nick]) { btn.disabled = false; btn.textContent = '作成してはじめる'; err.textContent = 'そのニックネームはこの端末で使われています'; return; }
+      users[nick] = { hash:hash(pw), oshi:[], atts:[] };
+      writeUsers(users);
+      me = { nick:nick, token:'local', oshi:[], atts:[] };
+      save(); closeGate(); startOnboarding(); return;
+    }
+    var u = users[nick];
+    if (!u || u.hash !== hash(pw)) {
+      btn.disabled = false; btn.textContent = 'ログインする';
+      err.textContent = 'ニックネームかパスワードが違います';
+      return;
+    }
+    me = { nick:nick, token:'local', oshi:u.oshi || [], atts:u.atts || [] };
+    save(); closeGate(); syncChrome(); renderAll(); toast(nick + 'さん、おかえりなさい');
+  });
+}
+function friendlyErr(m){
+  m = String(m || '');
+  if (/duplicate|unique/i.test(m)) return 'そのニックネームはすでに使われています';
+  if (/function .* does not exist|Could not find/i.test(m)) return 'サーバーの準備ができていません（SQLの実行が必要です）';
+  if (/password|pass/i.test(m)) return 'ニックネームかパスワードが違います';
+  return m;
+}
+function persistMe(){
+  if (!me) return;
+  save();
+  if (cloud.on() && me.token && me.token !== 'local') {
+    cloud.rpc('set_oshi', { p_token:me.token, p_oshi:me.oshi }).catch(function(){});
+  } else {
+    var users = readUsers();
+    if (users[me.nick]) {
+      users[me.nick].oshi = me.oshi;
+      users[me.nick].atts = me.atts;
+      writeUsers(users);
+    }
+  }
+}
+
+/* =========================================================
+   初回の推し設定
+   ========================================================= */
+let obPicked = new Set();
+function startOnboarding(){
+  obPicked = new Set(me && me.oshi ? me.oshi : []);
+  renderOshiPicker(true);
+  $('#gate').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function renderOshiPicker(first){
+  var html = '<div class="gate-in" style="max-width:640px">';
+  html += '<div class="mark">KL</div>';
+  html += '<h1 style="font-size:23px">' + (first ? '推しを選ぼう' : '推しを変更') + '</h1>';
+  html += '<p class="gl" style="margin-bottom:12px">何人でも選べます。あとから設定でいつでも変えられます。</p>';
+  html += '<div class="searchbar"><input id="obSearch" placeholder="名前で検索（例：まな）" autocomplete="off"></div>';
+  html += '<div id="obList"></div>';
+  html += '<div class="btns" style="margin-top:18px"><button class="btn primary" id="obSave" style="flex:1;justify-content:center">' +
+          (obPicked.size ? obPicked.size + '人を推しに設定' : 'あとで決める') + '</button></div>';
+  html += '<p class="foot">推しに設定すると、そのグループの予定が「推し」タブに集まります。</p></div>';
+  $('#gate').innerHTML = html;
+
+  function paint(q){
+    q = (q || '').trim();
+    var out = '';
+    GKEYS.forEach(function(k){
+      var g = GROUPS[k];
+      var ms = MEMBERS.filter(function(m){ return m.g === k && (!q || m.n.indexOf(q) >= 0 || g.short.indexOf(q) >= 0); });
+      if (!ms.length) return;
+      out += '<div class="gsec" style="--c:' + g.color + '"><span class="bar"></span>' +
+             '<span class="gname">' + esc(g.name) + '</span><span class="gnum">' + ms.length + '人</span></div>';
+      out += '<div class="oshi-grid">' + ms.map(function(m){
+        return '<button class="opick" data-ob="' + m.id + '" aria-pressed="' + obPicked.has(m.id) + '" style="--c:' + m.c + '">' +
+          '<span class="face">' + esc(m.n.slice(0, 1)) + '</span>' +
+          '<span class="nm">' + esc(m.n) + '</span>' +
+          '<span class="gr">' + esc(g.short) + '</span></button>';
+      }).join('') + '</div>';
+    });
+    $('#obList').innerHTML = out || '<div class="empty" style="margin-top:12px"><p>見つかりませんでした</p></div>';
+  }
+  paint('');
+  $('#obSearch').addEventListener('input', function(){ paint(this.value); });
+
+  $('#gate').addEventListener('click', function(e){
+    var b = e.target.closest('[data-ob]');
+    if (!b) return;
+    var id = b.dataset.ob;
+    if (obPicked.has(id)) obPicked.delete(id); else obPicked.add(id);
+    b.setAttribute('aria-pressed', obPicked.has(id));
+    var btn = $('#obSave');
+    if (btn) btn.textContent = obPicked.size ? obPicked.size + '人を推しに設定' : 'あとで決める';
+  });
+  $('#obSave').addEventListener('click', function(){
+    if (!me) me = { nick:'ゲスト', token:'local', oshi:[], atts:[] };
+    me.oshi = Array.from(obPicked);
+    persistMe();
+    closeGate();
+    syncChrome(); renderAll();
+    if (me.oshi.length && 'Notification' in window && Notification.permission === 'default') {
+      try { Notification.requestPermission(); } catch(e){}
+    }
+    toast(me.oshi.length ? me.oshi.length + '人を推しに設定しました' : '推しはあとから設定できます');
+  });
+}
+
+/* =========================================================
+   画面
+   ========================================================= */
+function renderToday(){
+  var d = NOW;
+  var todays = events.filter(function(e){ return e.date === TODAY_S; }).sort(sortEv);
+  var week = events.filter(function(e){ var n = daysFrom(e.date); return n >= 0 && n < 7; });
+  var atts = me ? me.atts : [];
+  var oshiHit = todays.filter(isOshiEvent);
+
+  var html = '<div class="hero">' +
+    '<div class="hero-eyebrow"><span class="dot"></span><span>TODAY · ' + d.getFullYear() + '</span></div>' +
+    '<div class="hero-main"><div class="hero-date">' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()) +
+      '<small>' + WEEK[d.getDay()] + '</small></div>' +
+      '<div class="hero-sub">' + (me && me.oshi.length ? esc(oshiMembers().slice(0, 2).map(function(m){ return m.n; }).join('・')) + ' の推し活' : '今日のカワラボ') + '</div></div>' +
+    '<div class="hero-stats">' +
+      '<div class="stat"><b>' + todays.length + '</b><span>今日</span></div>' +
+      '<div class="stat"><b>' + week.length + '</b><span>7日以内</span></div>' +
+      '<div class="stat"><b>' + atts.filter(function(a){ return daysFrom(a.date) >= 0; }).length + '</b><span>参戦予定</span></div>' +
+      '<div class="stat"><b>' + (me ? me.oshi.length : 0) + '</b><span>推し</span></div>' +
+    '</div>';
+
+  if (oshiHit.length) {
+    html += '<div class="hero-remind">♥<span><b>推しの予定</b> ' + esc(oshiHit[0].title) +
+      (oshiHit.length > 1 ? ' ほか' + (oshiHit.length - 1) + '件' : '') + '</span></div>';
+  } else {
+    var nextOshi = events.filter(function(e){ return daysFrom(e.date) >= 0 && isOshiEvent(e); }).sort(sortEv)[0];
+    if (nextOshi) html += '<div class="hero-remind" style="background:rgba(255,255,255,.10);border-color:rgba(255,255,255,.2)">♥<span>次の推し現場：' +
+      esc(nextOshi.title) + '（' + daysLabel(nextOshi).txt + '）</span></div>';
+  }
+  html += '</div>';
+
+  html += '<div class="sec"><h2>今日の予定</h2><span class="count">' + todays.length + '件</span></div>';
+  html += todays.length ? '<div class="cards">' + todays.map(cardHTML).join('') + '</div>'
+    : '<div class="empty"><div class="etitle">今日は予定なし</div><p>のんびり推し活の日。下の「7日以内」から次の現場を探せます。</p></div>';
+
+  var next = week.filter(function(e){ return e.date !== TODAY_S; });
+  html += '<div class="sec"><h2>7日以内</h2><span class="count">' + next.length + '件</span></div>';
+  html += next.length ? datedGroups(next) : '<div class="empty"><p>7日以内の予定は登録されていません。</p></div>';
+  $('#view-today').innerHTML = html;
+}
+
+function renderList(){
+  var html = '<div class="sec"><h2>この先の予定</h2><span class="count" id="listCount"></span></div>' +
+             '<div class="filters" id="filtersList"></div><div id="listBody"></div>';
+  $('#view-list').innerHTML = html;
+  renderFilters('#filtersList');
+  var list = events.filter(function(e){
+    if (daysFrom(e.date) < 0) return false;
+    if (filterGroups.size && !e.groups.some(function(g){ return filterGroups.has(g); })) return false;
+    return true;
+  }).sort(sortEv);
+  $('#listCount').textContent = '全' + list.length + '件';
+  $('#listBody').innerHTML = list.length ? datedGroups(list, true)
+    : emptyHTML('この条件の予定はありません', '上のグループ絞り込みを外してみてください。');
+}
+function renderFilters(sel){
+  var box = $(sel); if (!box) return;
+  var html = '<button class="chip" data-fg="__all" aria-pressed="' + (filterGroups.size === 0) + '">すべて</button>';
+  GKEYS.forEach(function(k){
+    var g = GROUPS[k];
+    html += '<button class="chip" data-fg="' + k + '" aria-pressed="' + filterGroups.has(k) + '" style="--c:' + g.color + '">' +
+            '<span class="swatch"></span>' + esc(g.short) + '</button>';
+  });
+  box.innerHTML = html;
+}
+
+function renderOshi(){
+  var ms = oshiMembers();
+  if (!ms.length) {
+    $('#view-oshi').innerHTML = '<div class="sec"><h2>推し</h2></div>' +
+      '<div class="empty"><div class="star-demo">♥</div><div class="etitle">まだ推しを決めていません</div>' +
+      '<p>推しを設定すると、そのグループの予定がここに集まり、優先して知らせます。</p>' +
+      '<div class="btns" style="justify-content:center"><button class="btn primary" id="oshiGo">推しを設定する</button></div></div>';
+    $('#oshiGo').addEventListener('click', startOnboarding);
+    return;
+  }
+  var html = '<div class="oshi-hero"><div class="oh-sub">MY OSHI · ' + ms.length + '人</div>' +
+    '<div class="oh-name">' + esc(ms.slice(0, 3).map(function(m){ return m.n; }).join('・')) + (ms.length > 3 ? ' ほか' : '') + '</div>' +
+    '<div class="oh-sub">' + esc(Array.from(oshiGroups()).map(function(g){ return GROUPS[g].name; }).join(' / ')) + '</div>' +
+    '<div class="member-row" style="margin-top:12px">' + ms.map(function(m){
+      return '<div class="mem" style="--c:' + m.c + '"><span class="face">' + esc(m.n.slice(0, 1)) + '</span>' +
+             '<span class="nm">' + esc(m.n) + '</span><span class="gr">' + esc(GROUPS[m.g].short) + '</span></div>';
+    }).join('') + '</div><div class="btns"><button class="btn" id="oshiEdit">推しを変更</button></div></div>';
+
+  var up = events.filter(function(e){ return daysFrom(e.date) >= 0 && isOshiEvent(e); }).sort(sortEv);
+  var mine = (me ? me.atts : []).filter(function(a){ return isOshiEvent(a) && daysFrom(a.date) >= 0; }).sort(sortEv);
+  if (mine.length) {
+    html += '<div class="sec"><h2>推し × 参戦予定</h2><span class="count">' + mine.length + '件</span></div>' +
+      '<div class="cards">' + mine.map(function(a){ return cardHTML(a); }).join('') + '</div>';
+  }
+  html += '<div class="sec"><h2>推しのこれから</h2><span class="count">' + up.length + '件</span></div>';
+  html += up.length ? datedGroups(up) : '<div class="empty"><p>推しグループの予定は、いまのところ登録されていません。</p></div>';
+  $('#view-oshi').innerHTML = html;
+  $('#oshiEdit').addEventListener('click', startOnboarding);
+}
+
+/* ---------- 参戦予定（+ フレンド） ---------- */
+function renderAttend(){
+  var seg = '<div class="seg" role="tablist">' +
+    '<button data-seg="mine" aria-selected="' + (attendSeg === 'mine') + '">自分の参戦予定</button>' +
+    '<button data-seg="friends" aria-selected="' + (attendSeg === 'friends') + '">フレンド</button></div>';
+  if (attendSeg === 'friends') { $('#view-attend').innerHTML = seg + friendsHTML(); bindFriendUI(); return; }
+
+  var atts = (me ? me.atts : []).slice().sort(sortEv);
+  var up = atts.filter(function(a){ return daysFrom(a.date) >= 0; });
+  var past = atts.filter(function(a){ return daysFrom(a.date) < 0; });
+  var html = seg + '<div class="sec"><h2>参戦予定</h2><span class="count">' + up.length + '件</span></div>';
+  html += up.length ? datedGroups(up) : emptyHTML('まだ参戦予定がありません', '予定カードの☆を押すと、ここに「行く予定」として集まります。');
+  if (past.length) {
+    html += '<div class="sec"><h2>参戦した予定</h2><span class="count">' + past.length + '件</span></div>' +
+      '<div class="cards">' + past.slice(-8).reverse().map(function(a){ return cardHTML(a); }).join('') + '</div>';
+  }
+  $('#view-attend').innerHTML = html;
+}
+
+function friendsHTML(){
+  var html = '<div class="sec"><h2>フレンド</h2><span class="count">' + friends.list.length + '人</span></div>';
+  if (!cloud.on()) {
+    return html + emptyHTML('フレンド機能はクラウド接続で使えます',
+      '設定 →「クラウド接続」でURLとキーを入れると、友達と参戦予定を見せ合えます。',
+      '<div class="btns" style="justify-content:center"><button class="btn" id="goCloud">設定を開く</button></div>');
+  }
+  if (!me || !me.token || me.token === 'local') {
+    return html + emptyHTML('ログインし直してください', 'クラウド接続に切り替えたあとは、一度ログインし直すとフレンドが使えます。');
+  }
+
+  html += '<div class="panel"><h3>フレンドを追加</h3>' +
+    '<p class="lead">相手のニックネームを入れて申請します。相手が承認すると見せ合えます。</p>' +
+    '<div class="row-inline"><input id="freqNick" placeholder="ニックネーム" autocomplete="off">' +
+    '<button class="btn primary" id="freqSend">申請</button></div>' +
+    '<div class="note" id="freqMsg"></div></div>';
+
+  if (friends.incoming.length) {
+    html += '<div class="panel"><h3>届いている申請</h3>' + friends.incoming.map(function(f){
+      return '<div class="frow"><div><b>' + esc(f.nick) + '</b><span class="fsub">さんから申請</span></div>' +
+        '<div class="fbtns"><button class="btn primary" data-facc="' + esc(f.nick) + '">承認</button>' +
+        '<button class="btn" data-frej="' + esc(f.nick) + '">ことわる</button></div></div>';
+    }).join('') + '</div>';
+  }
+  if (friends.outgoing.length) {
+    html += '<div class="panel"><h3>返事待ち</h3>' + friends.outgoing.map(function(f){
+      return '<div class="frow"><div><b>' + esc(f.nick) + '</b><span class="fsub">さん（承認待ち）</span></div></div>';
+    }).join('') + '</div>';
+  }
+
+  html += '<div class="sec"><h2>フレンドの参戦予定</h2><span class="count">' + friends.board.length + '件</span></div>';
+  if (!friends.list.length) {
+    html += emptyHTML('まだフレンドがいません', '上の欄からニックネームで申請してみてください。');
+  } else if (!friends.board.length) {
+    html += '<div class="empty"><p>フレンドはいますが、これからの参戦予定はまだありません。</p></div>';
+  } else {
+    var byNick = {};
+    friends.board.forEach(function(b){ (byNick[b.nick] = byNick[b.nick] || []).push(b); });
+    Object.keys(byNick).forEach(function(nick){
+      html += '<div class="panel"><h3>' + esc(nick) + ' さんの参戦予定</h3>' +
+        '<div class="cards" style="margin-top:10px">' + byNick[nick].sort(sortEv).map(function(b){
+          return cardHTML({ id:'f_' + b.key, date:b.date, title:b.title, time:b.time, open:'', venue:b.venue, groups:b.groups || [], type:b.type || 'live' });
+        }).join('') + '</div></div>';
+    });
+  }
+  return html;
+}
+function bindFriendUI(){
+  var raw = $('#freqSend');
+  if (raw) raw.addEventListener('click', function(){
+    var v = $('#freqNick').value.trim();
+    if (!v) return;
+    cloud.rpc('friend_request', { p_token:me.token, p_target:v }).then(function(r){
+      $('#freqMsg').textContent = r === 'ok' ? '申請しました。相手の承認を待ちましょう。' : String(r);
+      loadFriends();
+    }).catch(function(e){ $('#freqMsg').textContent = '送れませんでした：' + friendlyErr(e.message); });
+  });
+  $$('#view-attend [data-facc]').forEach(function(b){
+    b.addEventListener('click', function(){
+      cloud.rpc('friend_respond', { p_token:me.token, p_from:b.dataset.facc, p_action:'accept' })
+        .then(loadFriends).catch(function(e){ toast(e.message); });
+    });
+  });
+  $$('#view-attend [data-frej]').forEach(function(b){
+    b.addEventListener('click', function(){
+      cloud.rpc('friend_respond', { p_token:me.token, p_from:b.dataset.frej, p_action:'reject' })
+        .then(loadFriends).catch(function(e){ toast(e.message); });
+    });
+  });
+  var go = $('#goCloud');
+  if (go) go.addEventListener('click', function(){ setView('set'); });
+}
+function loadFriends(){
+  if (!cloud.on() || !me || !me.token || me.token === 'local') { friends = { list:[], incoming:[], outgoing:[], board:[], err:'' }; return; }
+  Promise.all([
+    cloud.rpc('friend_list', { p_token:me.token }),
+    cloud.rpc('friend_board', { p_token:me.token })
+  ]).then(function(res){
+    var l = res[0] || [], b = res[1] || [];
+    friends = {
+      list: l.filter(function(x){ return x.dir === 'friend'; }),
+      incoming: l.filter(function(x){ return x.dir === 'in'; }),
+      outgoing: l.filter(function(x){ return x.dir === 'out'; }),
+      board: Array.isArray(b) ? b : [],
+      err:''
+    };
+    renderAttend();
+  }).catch(function(e){ friends.err = e.message; });
+}
+
+/* ---------- 設定 ---------- */
+function renderSet(){
+  var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  var c = cloud.cfg();
+  var html = '<div class="sec"><h2>設定</h2><span class="count">' + (me ? esc(me.nick) : 'ゲスト') + '</span></div>';
+
+  html += '<div class="panel"><h3>表示</h3>' +
+    '<div class="switch"><div><div class="lab">ダークモード</div><div class="sub">暗い場所でも目にやさしい表示</div></div>' +
+    '<button class="tgl" id="swDark" aria-pressed="' + dark + '" aria-label="ダークモード"></button></div></div>';
+
+  html += '<div class="panel"><h3>あなたの設定</h3>' +
+    '<div class="kv"><span>ニックネーム</span><b>' + (me ? esc(me.nick) : '未ログイン') + '</b></div>' +
+    '<div class="kv"><span>推し</span><b>' + (me && me.oshi.length ? me.oshi.length + '人' : '未設定') + '</b></div>' +
+    '<div class="kv"><span>参戦予定</span><b>' + (me ? me.atts.length : 0) + '件</b></div>' +
+    '<div class="kv"><span>接続モード</span><b>' + (cloud.on() ? 'クラウド（友達と共有）' : 'この端末だけ') + '</b></div>' +
+    '<div class="btns"><button class="btn" id="btnOshi">推しを変更</button>' +
+    '<button class="btn" id="btnLogout">ログアウト</button></div>' +
+    '<div class="note">推しと参戦予定は、' + (cloud.on() ? 'クラウドに保存され、フレンドにだけ見えます。' : 'この端末の中だけに保存されます。') + '</div></div>';
+
+  html += '<div class="panel"><h3>クラウド接続</h3>' +
+    '<p class="lead">友達と参戦予定を見せ合うには接続が必要です。無料のSupabaseを使います。</p>' +
+    '<div class="field"><label for="cUrl">Project URL</label><input id="cUrl" placeholder="https://xxxxx.supabase.co" value="' + (c ? esc(c.url) : '') + '"></div>' +
+    '<div class="field"><label for="cKey">anon public key</label><input id="cKey" placeholder="eyJhbGciOi..." value="' + (c ? esc(c.key) : '') + '"></div>' +
+    '<div class="btns"><button class="btn primary" id="cSave">保存する</button>' +
+    '<button class="btn" id="cTest">接続テスト</button>' +
+    (cloud.on() ? '<button class="btn danger" id="cOff">接続を解除</button>' : '') + '</div>' +
+    '<div class="note" id="cMsg">' + (cloud.on() ? '接続中：' + esc(c.url) : '未接続。このままでも予定の閲覧・参戦予定の記録は使えます。') + '</div></div>';
+
+  if (isAdmin) html += adminPanelHTML(); else html += adminFormHTML();
+
+  html += '<div class="panel"><h3>情報の更新</h3>' +
+    '<p class="lead">右下の更新ボタン、または下のボタンで最新の公開データを読み込みます。</p>' +
+    '<div class="kv"><span>最終更新</span><b>' + (lastRefresh ? fmtTime(lastRefresh) : '未取得') + '</b></div>' +
+    '<div class="kv"><span>登録されている予定</span><b>' + events.length + '件</b></div>' +
+    '<div class="btns"><button class="btn primary" id="btnRefresh2">いま更新する</button></div>' +
+    '<div class="note">更新は無料です。Gensparkのクレジットは使いません。</div></div>';
+
+  html += '<div class="panel"><h3>この手帳について</h3>' +
+    '<div class="kv"><span>運営</span><b>非公式ファンサイト</b></div>' +
+    '<div class="kv"><span>予定の出典</span><b>公式サイト・公式X</b></div>' +
+    '<div class="note">日時・出演者は変わることがあります。チケット購入前は必ず公式で確認してください。</div>' +
+    '<div class="btns"><a class="btn" href="' + KAWAI + '/live_information/schedule/list" target="_blank" rel="noopener">公式スケジュールを開く</a></div></div>';
+
+  $('#view-set').innerHTML = html;
+  bindSet();
+}
+
+function adminPanelHTML(){
+  var html = '<div class="panel"><h3>管理者メニュー</h3>' +
+    '<p class="lead">ログイン中：' + esc(CONFIG.adminId) + '</p>';
+  html += '<ol class="steps">' +
+    '<li><div class="no">1</div><div><b>予定を直す</b><p>画面右上の＋から追加、カードを開いて編集・削除できます。</p></div></li>' +
+    '<li><div class="no">2</div><div><b>公開用データを書き出す</b><p>events.json を保存してサイトに上書きすると全員に反映されます。</p></div></li>' +
+  '</ol><div class="btns"><button class="btn primary" id="btnPublish">公開用JSONを書き出す</button>' +
+  '<button class="btn" id="btnBackup">バックアップ</button></div>';
+
+  html += '<div class="sec" style="margin-top:20px"><h2 style="font-size:15px">アカウント一覧</h2>' +
+          '<span class="count" id="accCount"></span></div>';
+  if (!cloud.on()) {
+    html += '<div class="note">クラウド接続をすると、登録した人の一覧と削除がここでできます。いまは「この端末だけモード」なので、あなたの端末に作ったアカウントだけが対象です。</div>';
+    html += localAccountsTable();
+  } else {
+    html += '<div id="accTable"><div class="note">読み込み中…</div></div>' +
+            '<div class="btns"><button class="btn" id="accReload">一覧を更新</button></div>';
+  }
+  html += '<div class="btns"><button class="btn danger" id="btnAdminOut">管理者ログアウト</button></div></div>';
+  return html;
+}
+function localAccountsTable(){
+  var users = readUsers();
+  var nicks = Object.keys(users);
+  if (!nicks.length) return '<div class="empty"><p>この端末に作成されたアカウントはありません。</p></div>';
+  return '<div class="table-wrap"><table class="tbl"><thead><tr><th>ニックネーム</th><th>推し</th><th>参戦</th><th></th></tr></thead><tbody>' +
+    nicks.map(function(n){
+      var u = users[n];
+      return '<tr><td>' + esc(n) + '</td><td>' + ((u.oshi || []).length) + '人</td><td>' + ((u.atts || []).length) + '件</td>' +
+        '<td><button class="btn danger tiny" data-delacc="' + esc(n) + '">削除</button></td></tr>';
+    }).join('') + '</tbody></table></div>';
+}
+function renderAccounts(list){
+  var box = $('#accTable'); if (!box) return;
+  if (!list || !list.length) { box.innerHTML = '<div class="empty"><p>まだ登録した人はいません。</p></div>'; return; }
+  box.innerHTML = '<div class="table-wrap"><table class="tbl"><thead><tr><th>ニックネーム</th><th>登録日</th><th>推し</th><th>参戦</th><th></th></tr></thead><tbody>' +
+    list.map(function(p){
+      var d = new Date(p.created_at);
+      return '<tr><td><b>' + esc(p.nick) + '</b></td><td>' + (d.getMonth() + 1) + '/' + d.getDate() + '</td>' +
+        '<td>' + (p.oshi_count || 0) + '人</td><td>' + (p.attend_count || 0) + '件</td>' +
+        '<td><button class="btn danger tiny" data-delacc="' + esc(p.nick) + '">削除</button></td></tr>';
+    }).join('') + '</tbody></table></div>';
+  var c = $('#accCount'); if (c) c.textContent = list.length + '人';
+}
+function bindSet(){
+  $('#swDark').addEventListener('click', function(){
+    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    renderSet();
+  });
+  $('#btnOshi').addEventListener('click', startOnboarding);
+  $('#btnLogout').addEventListener('click', function(){
+    if (!window.confirm('ログアウトしますか？ 端末に残っているデータは消えません。')) return;
+    me = null; isAdmin = false; adminPass = ''; save(); syncChrome(); renderAll(); openGate();
+  });
+  $('#btnRefresh2').addEventListener('click', doRefresh);
+  $('#cSave').addEventListener('click', function(){
+    cloud.saveCfg($('#cUrl').value, $('#cKey').value);
+    $('#cMsg').textContent = cloud.on() ? '保存しました。接続テストを押して確認してください。' : '解除しました（この端末だけモード）。';
+    renderSet();
+  });
+  $('#cTest').addEventListener('click', function(){
+    cloud.saveCfg($('#cUrl').value, $('#cKey').value);
+    var m = $('#cMsg');
+    m.textContent = 'テスト中…';
+    cloud.rpc('ping', {}).then(function(r){
+      m.textContent = '接続できました。次はアカウントを作り直すか、ログインし直してください。';
+    }).catch(function(e){
+      m.textContent = 'つながりません：' + friendlyErr(e.message);
+    });
+  });
+  var off = $('#cOff');
+  if (off) off.addEventListener('click', function(){
+    if (!window.confirm('クラウド接続を解除しますか？（保存済みデータは消えません）')) return;
+    cloud.saveCfg('', ''); renderSet(); toast('接続を解除しました');
+  });
+  if (isAdmin) {
+    $('#btnPublish').addEventListener('click', publishJSON);
+    $('#btnBackup').addEventListener('click', function(){
+      download('kawarabo-backup-' + TODAY_S + '.json', JSON.stringify({ v:3, events:events }, null, 2), 'application/json');
+      toast('バックアップを保存しました');
+    });
+    $('#btnAdminOut').addEventListener('click', function(){
+      isAdmin = false; adminPass = ''; $('#btnAdd').hidden = true; renderSet(); toast('管理者ログアウトしました');
+    });
+    if (cloud.on()) {
+      var reload = $('#accReload');
+      if (reload) reload.addEventListener('click', fetchAccounts);
+      fetchAccounts();
+    }
+    $$('#view-set [data-delacc]').forEach(function(b){
+      b.addEventListener('click', function(){
+        var nick = b.dataset.delacc;
+        if (!window.confirm(nick + ' さんのアカウントを削除しますか？\n参戦予定もすべて消えます。')) return;
+        if (cloud.on()) {
+          cloud.rpc('admin_delete', { p_pass:adminPass, p_nick:nick })
+            .then(function(){ toast('削除しました'); fetchAccounts(); })
+            .catch(function(e){ toast('削除できません：' + e.message); });
+        } else {
+          var u = readUsers(); delete u[nick]; writeUsers(u);
+          toast('削除しました'); renderSet();
+        }
+      });
+    });
+  } else {
+    $('#adminForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      var id = $('#aId').value.trim(), pw = $('#aPw').value;
+      if (id !== CONFIG.adminId) { $('#aErr').textContent = '管理者番号が違います'; return; }
+      adminPass = pw;
+      var done = function(){ isAdmin = true; $('#btnAdd').hidden = false; renderSet(); toast('管理者としてログインしました'); };
+      if (cloud.on()) {
+        cloud.rpc('admin_list', { p_pass:pw }).then(done).catch(function(err){
+          $('#aErr').textContent = friendlyErr(err.message);
+        });
+      } else {
+        var cur = localStorage.getItem(STORE + '.ap');
+        if (cur ? cur === hash(pw) : pw === CONFIG.adminPass) done();
+        else $('#aErr').textContent = 'パスワードが違います';
+      }
+    });
+  }
+}
+function adminFormHTML(){
+  return '<div class="panel"><h3>管理者ログイン</h3>' +
+    '<p class="lead">予定の追加・修正・アカウント管理ができるのは管理者だけです。</p>' +
+    '<form id="adminForm">' +
+      '<div class="field"><label for="aId">管理者番号</label><input id="aId" autocomplete="username" placeholder="管理者番号"></div>' +
+      '<div class="field"><label for="aPw">パスワード</label><input id="aPw" type="password" autocomplete="current-password" placeholder="••••••"></div>' +
+      '<div class="err" id="aErr" style="font-size:12px;color:#D64545;min-height:16px"></div>' +
+      '<div class="btns" style="margin-top:2px"><button class="btn" type="submit">ログイン</button></div>' +
+    '</form></div>';
+}
+function fetchAccounts(){
+  if (!cloud.on() || !isAdmin) return;
+  cloud.rpc('admin_list', { p_pass:adminPass }).then(function(list){
+    renderAccounts(Array.isArray(list) ? list : []);
+  }).catch(function(e){
+    var b = $('#accTable');
+    if (b) b.innerHTML = '<div class="note">一覧を読めませんでした：' + esc(friendlyErr(e.message)) + '</div>';
+  });
+}
+function fmtTime(ts){
+  var d = new Date(ts);
+  return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function renderAll(){
+  renderToday(); renderList(); renderOshi(); renderAttend(); renderSet();
+}
+function syncChrome(){
+  $('#whoChip').hidden = !me;
+  if (me) $('#whoChip').textContent = me.nick;
+  var d = NOW;
+  $('#todayChip').textContent = pad(d.getMonth() + 1) + '/' + pad(d.getDate()) + '（' + WEEK[d.getDay()] + '）· KAWAII LAB.';
+}
+
+/* ---------- テーマ ---------- */
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme', t);
+  try { localStorage.setItem(STORE + '.theme', t); } catch(e){}
+  var meta = document.querySelector('meta[name=theme-color]');
+  if (meta) meta.setAttribute('content', t === 'dark' ? '#0F0B16' : '#FBF9FD');
+  var s = $('#icoSun'), m = $('#icoMoon');
+  if (s) s.hidden = (t === 'dark');
+  if (m) m.hidden = (t !== 'dark');
+}
+
+/* ---------- 更新 ---------- */
+function doRefresh(){
+  var fab = $('#fabRefresh');
+  fab.classList.add('spin');
+  fetch(CONFIG.dataUrl + '?t=' + Date.now(), { cache:'no-store' })
+    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    .then(function(data){
+      var list = Array.isArray(data) ? data : (data && data.events);
+      if (!Array.isArray(list)) throw new Error('データ形式が違います');
+      var seen = {};
+      events.forEach(function(e){ seen[e.date + '|' + e.title] = e; });
+      var added = 0, updated = 0;
+      list.forEach(function(o, i){
+        if (!o || !o.title || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.date || ''))) return;
+        var key = o.date + '|' + o.title;
+        var cur = seen[key];
+        var rec = normalizeEvent(o, 'r' + Date.now() + '_' + i);
+        if (!rec) return;
+        if (cur) {
+          var ch = false;
+          if (o.time && !cur.time) { cur.time = o.time; ch = true; }
+          if (o.open && !cur.open) { cur.open = o.open; ch = true; }
+          if (o.venue && !cur.venue) { cur.venue = o.venue; ch = true; }
+          if (ch) updated++;
+        } else { events.push(rec); added++; }
+      });
+      lastRefresh = Date.now();
+      save(); renderAll(); syncChrome();
+      fab.classList.remove('spin');
+      toast(added || updated ? '更新しました：新規' + added + '件 / 補完' + updated + '件' : '最新の状態です');
+    })
+    .catch(function(err){
+      fab.classList.remove('spin');
+      toast('更新できませんでした（' + err.message + '）');
+    });
+}
+function normalizeEvent(o, id){
+  var gs = Array.isArray(o.groups) ? o.groups.slice() : (typeof o.groups === 'string' ? o.groups.split(',') : []);
+  gs = gs.map(function(x){ return String(x).trim().toUpperCase(); });
+  if (gs.indexOf('ALL') >= 0) gs = GKEYS.slice();
+  gs = gs.filter(function(g){ return GROUPS[g]; });
+  return { id:id, date:String(o.date),
+    open:/^\d{2}:\d{2}$/.test(o.open || '') ? o.open : '',
+    time:/^\d{2}:\d{2}$/.test(o.time || '') ? o.time : '',
+    groups:gs.length ? gs : ['FZ'], type:TYPES[o.type] ? o.type : 'live',
+    title:String(o.title), venue:o.venue ? String(o.venue) : '',
+    source:o.source ? String(o.source) : '', note:o.note ? String(o.note) : '' };
+}
+function publishJSON(){
+  var out = events.slice().sort(sortEv).map(function(e){
+    return { date:e.date, open:e.open, time:e.time, groups:e.groups, type:e.type, title:e.title, venue:e.venue, note:e.note, source:e.source };
+  });
+  download('events.json', JSON.stringify({ updatedAt:new Date().toISOString(), events:out }, null, 2), 'application/json');
+  toast('events.json を書き出しました');
+}
+function download(name, text, mime){
+  var blob = new Blob([text], { type:mime });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+}
+
+/* ---------- 詳細・フォーム ---------- */
+function openSheet(id){
+  var m = document.getElementById(id);
+  m.classList.add('open'); m.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+function closeSheets(){
+  $$('.modal').forEach(function(m){ m.classList.remove('open'); m.setAttribute('aria-hidden', 'true'); });
+  document.body.style.overflow = '';
+}
+function openDetail(id){
+  var ev = events.find(function(e){ return e.id === id || evKey(e) === id; }) ||
+           (me ? me.atts.find(function(a){ return a.key === id; }) : null);
+  if (!ev) return;
+  if (!ev.id) ev.id = evKey(ev);
+  var d = parseD(ev.date);
+  var dl = daysLabel(ev);
+  var gs = (ev.groups || []).map(function(k){ return GROUPS[k]; }).filter(Boolean);
+  var html = '<div class="card-top" style="padding-right:0">' + groupChips(ev.groups, 7) +
+    '<span class="tchip ' + ev.type + '">' + (TYPES[ev.type] || '予定') + '</span>' +
+    '<span class="days ' + (dl.soon ? 'soon' : '') + '" style="position:static;margin-left:auto">' + dl.txt + '</span></div>' +
+    '<div class="dtit">' + esc(ev.title) + '</div>' +
+    '<div class="detail-rows">' +
+      '<div class="drow"><dt>日付</dt><dd>' + d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日（' + WEEK[d.getDay()] + '）</dd></div>' +
+      '<div class="drow"><dt>時間</dt><dd>' + (ev.time ? esc(ev.time) + ' 開演' : '時間未定（公式でご確認ください）') +
+        (ev.open ? ' / ' + esc(ev.open) + ' 開場' : '') + '</dd></div>' +
+      (ev.venue ? '<div class="drow"><dt>会場</dt><dd>' + esc(ev.venue) + '</dd></div>' : '') +
+      (ev.note ? '<div class="drow"><dt>メモ</dt><dd>' + esc(ev.note) + '</dd></div>' : '') +
+      '<div class="drow"><dt>グループ</dt><dd>' + gs.map(function(g){ return esc(g.name); }).join(' / ') + '</dd></div>' +
+    '</div>' +
+    '<div class="btns">' +
+      '<button class="btn primary" data-att="' + esc(ev.id) + '">' + (isAttending(evKey(ev)) ? '★ 参戦予定です' : '☆ 参戦予定に追加') + '</button>' +
+      (ev.source ? '<a class="btn" href="' + esc(ev.source) + '" target="_blank" rel="noopener">公式で確認</a>' : '') +
+      (isAdmin ? '<button class="btn" data-edit="' + esc(ev.id) + '">編集</button>' +
+                 '<button class="btn danger" data-del="' + esc(ev.id) + '">削除</button>' : '') +
+    '</div>';
+  if (!isAdmin) html += '<div class="note">予定の追加・修正は管理者のみ。あなたは参戦予定の登録だけできます。</div>';
+  $('#detailBody').innerHTML = html;
+  openSheet('modalDetail');
+}
+function renderPicked(){
+  $('#fGroups').innerHTML = GKEYS.map(function(k){
+    return '<button type="button" data-pick="' + k + '" aria-pressed="' + picked.has(k) + '" style="--c:' + GROUPS[k].color + '">' + esc(GROUPS[k].short) + '</button>';
+  }).join('');
+}
+function openForm(ev){
+  if (!isAdmin) { toast('予定の編集は管理者のみです'); return; }
+  editingId = ev ? ev.id : null;
+  $('#eventSheetTitle').textContent = ev ? '予定を編集' : '予定を追加';
+  $('#fSubmit').textContent = ev ? '更新する' : '保存する';
+  $('#fTitle').value = ev ? ev.title : '';
+  $('#fDate').value = ev ? ev.date : (selDate || TODAY_S);
+  $('#fTime').value = ev ? ev.time : '';
+  $('#fOpen').value = ev ? ev.open : '';
+  $('#fType').value = ev ? ev.type : 'live';
+  $('#fVenue').value = ev ? ev.venue : '';
+  $('#fSource').value = ev ? ev.source : '';
+  $('#fNote').value = ev ? ev.note : '';
+  picked = new Set(ev && ev.groups.length ? ev.groups : ['FZ']);
+  renderPicked();
+  openSheet('modalEvent');
+}
+function maybeNotify(){
+  if (!me || !me.oshi.length || !('Notification' in window) || Notification.permission !== 'granted') return;
+  var hit = events.filter(function(e){ var n = daysFrom(e.date); return n >= 0 && n <= 1 && isOshiEvent(e); });
+  if (!hit.length) return;
+  var e0 = hit[0];
+  try {
+    new Notification('推しの予定：' + e0.title, {
+      body:(daysFrom(e0.date) === 0 ? '今日' : '明日') + (e0.time ? ' ' + e0.time : '') + (e0.venue ? ' / ' + e0.venue : ''),
+      tag:'kawarabo-oshi'
+    });
+  } catch(e){}
+}
+
+/* =========================================================
+   起動とイベント
+   ========================================================= */
+function bind(){
+  $$('.tabbar button').forEach(function(b){ b.addEventListener('click', function(){ setView(b.dataset.view); }); });
+  $('#btnAdd').addEventListener('click', function(){ openForm(null); });
+  $('#btnTheme').addEventListener('click', function(){
+    setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+    if ($('#swDark')) renderSet();
+  });
+  $('#fabRefresh').addEventListener('click', doRefresh);
+
+  document.addEventListener('click', function(e){
+    var seg = e.target.closest('[data-seg]');
+    if (seg) { attendSeg = seg.dataset.seg; renderAttend(); return; }
+
+    var pick = e.target.closest('[data-pick]');
+    if (pick) { var k = pick.dataset.pick; if (picked.has(k)) picked.delete(k); else picked.add(k); renderPicked(); return; }
+
+    var att = e.target.closest('[data-att]');
+    if (att) {
+      e.preventDefault(); e.stopPropagation();
+      var id = att.dataset.att;
+      var target = events.find(function(x){ return x.id === id || evKey(x) === id; }) ||
+                   (me ? me.atts.find(function(a){ return a.key === id; }) : null);
+      if (target) toggleAttend(target);
+      if ($('#modalDetail').classList.contains('open')) openDetail(id);
+      return;
+    }
+
+    var fg = e.target.closest('[data-fg]');
+    if (fg) {
+      var key = fg.dataset.fg;
+      if (key === '__all') filterGroups.clear();
+      else if (filterGroups.has(key)) filterGroups.delete(key);
+      else filterGroups.add(key);
+      renderList(); return;
+    }
+
+    var edit = e.target.closest('[data-edit]');
+    if (edit) {
+      var ev2 = events.find(function(x){ return x.id === edit.dataset.edit; });
+      closeSheets();
+      if (ev2) setTimeout(function(){ openForm(ev2); }, 80);
+      return;
+    }
+    var del = e.target.closest('[data-del]');
+    if (del) {
+      if (!isAdmin) { toast('削除は管理者のみです'); return; }
+      if (window.confirm('この予定を削除しますか？')) {
+        events = events.filter(function(x){ return x.id !== del.dataset.del; });
+        save(); closeSheets(); renderAll(); toast('削除しました');
+      }
+      return;
+    }
+
+    var card = e.target.closest('.card');
+    if (card && !e.target.closest('a')) { openDetail(card.dataset.id); return; }
+    if (e.target.closest('[data-close]')) { closeSheets(); return; }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') closeSheets();
+    if ((e.key === 'Enter' || e.key === ' ') && document.activeElement && document.activeElement.classList.contains('card')) {
+      e.preventDefault(); openDetail(document.activeElement.dataset.id);
+    }
+  });
+  $$('.modal').forEach(function(m){ m.addEventListener('click', function(e){ if (e.target === m) closeSheets(); }); });
+
+  $('#eventForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    if (!isAdmin) { toast('予定の編集は管理者のみです'); return; }
+    var title = $('#fTitle').value.trim(), date = $('#fDate').value;
+    if (!title || !date) { toast('タイトルと日付を入れてください'); return; }
+    var obj = { date:date, time:$('#fTime').value, open:$('#fOpen').value,
+      groups:Array.from(picked), type:$('#fType').value, title:title,
+      venue:$('#fVenue').value.trim(), source:$('#fSource').value.trim(), note:$('#fNote').value.trim() };
+    if (!obj.groups.length) obj.groups = ['FZ'];
+    if (editingId) {
+      var i = events.findIndex(function(x){ return x.id === editingId; });
+      if (i > -1) events[i] = Object.assign(events[i], obj);
+    } else {
+      obj.id = 'm' + Date.now(); events.push(obj);
+    }
+    save(); closeSheets(); renderAll(); toast(editingId ? '更新しました' : '追加しました');
+    editingId = null;
+  });
+}
+
+function setView(name){
+  $$('.view').forEach(function(v){ v.hidden = v.id !== 'view-' + name; });
+  $$('.tabbar button').forEach(function(b){ b.setAttribute('aria-selected', String(b.dataset.view === name)); });
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (name === 'attend' && attendSeg === 'friends') loadFriends();
+}
+
+/* ---------- 起動 ---------- */
+load();
+var savedTheme = 'light';
+try { savedTheme = localStorage.getItem(STORE + '.theme') || 'light'; } catch(e){}
+setTheme(savedTheme);
+selDate = TODAY_S;
+bind();
+syncChrome();
+renderAll();
+
+if (!me) {
+  openGate();
+} else {
+  syncChrome();
+  if (cloud.on() && me.token && me.token !== 'local') loadFriends();
+  maybeNotify();
+  var stale = !lastRefresh || (Date.now() - lastRefresh) > 6 * 3600 * 1000;
+  if (stale) setTimeout(doRefresh, 800);
+}
+
+</script>
+<script type="module" src="https://static.cloudflareinsights.com/beacon.min.js/vce701823e78c4301a35b7e07294d87301792088814092" integrity="sha512-UKNk8GbxkABxKcXYuLkO16EleLGUkcvJWtpSNmExE0Too3ZaFAxTscNWEc1OdAv5/BikHawapSCaiD2XCmp+Bw==" data-cf-beacon='{"version":"2024.11.0","token":"4edd5f8ec12a48cfa682ab8261b80a79","spa":2}' crossorigin="anonymous"></script>
+</body>
+</html>
