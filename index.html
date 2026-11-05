@@ -746,6 +746,14 @@ const cloud = {
   }
 };
 
+/* クラウド予定データの版（更新検知用） */
+function cloudVer(){
+  try { return localStorage.getItem(STORE + '.cver') || ''; } catch(e){ return ''; }
+}
+function setCloudVer(v){
+  try { v ? localStorage.setItem(STORE + '.cver', v) : localStorage.removeItem(STORE + '.cver'); } catch(e){}
+}
+
 /* 端末だけモードのユーザー保管 */
 function readUsers(){
   try { return JSON.parse(localStorage.getItem(STORE + '.users') || '{}'); } catch(e){ return {}; }
@@ -1454,24 +1462,30 @@ function notifPanelHTML(){
   for (var h = 18; h <= 24; h++) opts += '<option value="' + h + '"' + (h === hour ? ' selected' : '') + '>' + hourLabel(h) + '</option>';
 
   var pushState;
-  if (!push.on()) pushState = '<div class="notice"><b>まだ準備中です</b><ul><li>無料のプッシュ通知サービス（OneSignal）の App ID を下に入れると、アプリを閉じていても届くようになります。</li></ul></div>';
+  if (!push.on()) pushState = '<div class="notice"><b>まだ準備中です</b><ul><li>管理者が設定すると、アプリを閉じていても届くようになります。</li></ul></div>';
   else if (perm === 'granted') pushState = '<div class="okline">✓ アプリを閉じていても届きます</div>';
   else if (perm === 'denied') pushState = '<div class="notice"><b>通知がブロックされています</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 から、このサイトを許可してください。</li></ul></div>';
   else pushState = '<div class="btns" style="margin-top:0"><button class="btn primary" id="pushAllow">通知をオンにする</button></div>';
+
+  var idBox = '';
+  if (isAdmin) {
+    idBox = '<div class="subh" style="margin-top:16px">プッシュ通知の設定（管理者のみ）</div>' +
+      '<p class="lead" style="margin-bottom:10px">ここに1回入れるだけで、<b>全員の端末</b>に反映されます。' +
+        (push.on() ? 'いま設定済み：<b>' + esc(push.appId().slice(0, 8)) + '…</b>' : 'まだ未設定です。') + '</p>' +
+      '<div class="field" style="margin-bottom:8px"><label for="osId">OneSignal App ID</label>' +
+        '<input id="osId" placeholder="例：1a2b3c4d-1234-5678-9abc-1234567890ab" value="' + (push.on() ? esc(push.appId()) : '') + '"></div>' +
+      '<div class="btns" style="margin-top:0"><button class="btn primary" id="osSave">全員に配る</button>' +
+        (push.on() ? '<button class="btn" id="osSync">いま同期する</button>' : '') + '</div>' +
+      '<div class="note" id="osMsg">App ID の入手方法は <a href="push-setup.html" target="_blank" rel="noopener">「プッシュ通知の設定」</a> にまとめてあります。</div>';
+  } else {
+    idBox = '<div class="note" style="margin-top:14px">アプリを閉じていても届く通知は、管理者が設定すると自動で有効になります。あなたが何か入力する必要はありません。</div>';
+  }
 
   return '<div class="switch"><div><div class="lab">通知する時刻</div><div class="sub">前日に推しの予定があるとき、この時刻にお知らせします</div></div>' +
     '<select id="notifHour" class="selhour">' + opts + '</select></div>' +
     '<div class="switch"><div><div class="lab">この端末でも通知する</div><div class="sub">アプリを開いているあいだ、同じ時刻にブラウザ通知を出します</div></div>' +
     '<button class="tgl" id="swNotif" aria-pressed="' + (notifOn() && perm === 'granted') + '" aria-label="通知"></button></div>' +
-    pushState +
-    '<div class="subh" style="margin-top:16px">アプリを閉じていても届く通知（無料）</div>' +
-    '<p class="lead" style="margin-bottom:10px">OneSignal の App ID を入れると有効になります。' +
-      (push.on() ? 'いま設定済み：<b>' + esc(push.appId().slice(0, 8)) + '…</b>' : 'まだ未設定です。') + '</p>' +
-    '<div class="field" style="margin-bottom:8px"><label for="osId">OneSignal App ID</label>' +
-      '<input id="osId" placeholder="例：1a2b3c4d-1234-5678-9abc-1234567890ab" value="' + (push.on() ? esc(push.appId()) : '') + '"></div>' +
-    '<div class="btns" style="margin-top:0"><button class="btn" id="osSave">保存</button>' +
-      (push.on() ? '<button class="btn" id="osSync">いま同期する</button>' : '') + '</div>' +
-    '<div class="note">設定方法は <a href="push-setup.html" target="_blank" rel="noopener">「プッシュ通知の設定」</a> にまとめてあります。通知はアプリを閉じていても届きます（iPhoneはホーム画面に追加が必要）。</div>';
+    pushState + idBox;
 }
 function renderSet(){
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1541,8 +1555,11 @@ function adminPanelHTML(){
   html += '<ol class="steps">' +
     '<li><div class="no">1</div><div><b>予定を直す</b><p>画面右上の＋から追加、カードを開いて編集・削除できます。</p></div></li>' +
     '<li><div class="no">2</div><div><b>公開用データを書き出す</b><p>events.json を保存してサイトに上書きすると全員に反映されます。</p></div></li>' +
-  '</ol><div class="btns"><button class="btn primary" id="btnPublish">公開用JSONを書き出す</button>' +
-  '<button class="btn" id="btnBackup">バックアップ</button></div>';
+  '</ol><div class="btns"><button class="btn primary" id="btnPushCloud">全員に公開する</button>' +
+  '<button class="btn" id="btnPublish">公開用JSONを書き出す</button>' +
+  '<button class="btn" id="btnBackup">バックアップ</button></div>' +
+  '<div class="note" id="syncMsg">予定を追加・編集すると自動で公開されます。うまくいかないときは「全員に公開する」を押してください。' +
+  (cloud.on() ? '' : '<br><b>いまはクラウド未接続なので、公開できません。</b>') + '</div>';
 
   html += '<h4 class="subh">アカウント一覧 <span class="count" id="accCount" style="font-size:11px;color:var(--ink3)"></span></h4>';
   if (!cloud.on()) {
@@ -1627,9 +1644,15 @@ function bindSet(){
     if (id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
       toast('App ID の形式が違うようです（ハイフン区切りの36文字）'); return;
     }
-    push.saveAppId(id);
-    push.init(); push.sync();
-    renderSet(); toast(id ? '保存しました。通知をオンにしてください' : '解除しました');
+    if (!cloud.on()) { push.saveAppId(id); push.sync(); renderSet(); toast(id ? 'この端末にだけ保存しました（クラウド未接続）' : '解除しました'); return; }
+    cloud.rpc('config_set', { p_pass:adminPass, p_key:'onesignal_app_id', p_value:id }).then(function(){
+      push.saveAppId(id);
+      push.setRemote(id);
+      push.sync();
+      renderSet(); toast(id ? '全員に配りました。通知をオンにしてください' : '解除しました');
+    }).catch(function(e){
+      toast('配れませんでした：' + friendlyErr(e.message) + '（SQLの実行が必要かもしれません）');
+    });
   });
   var osSync = $('#osSync');
   if (osSync) osSync.addEventListener('click', function(){ push.sync(); toast('同期しました'); });
@@ -1694,6 +1717,8 @@ function bindSet(){
     cloud.saveCfg('', ''); renderSet(); toast('接続を解除しました');
   });
   if (isAdmin) {
+    var pc = $('#btnPushCloud');
+    if (pc) pc.addEventListener('click', function(){ pushCloudEvents(false); });
     $('#btnPublish').addEventListener('click', publishJSON);
     $('#btnBackup').addEventListener('click', function(){
       download('kawarabo-backup-' + TODAY_S + '.json', JSON.stringify({ v:3, events:events }, null, 2), 'application/json');
@@ -1784,37 +1809,42 @@ function setTheme(t){
 function doRefresh(){
   var fab = $('#fabRefresh');
   fab.classList.add('spin');
-  fetch(CONFIG.dataUrl + '?t=' + Date.now(), { cache:'no-store' })
-    .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
-    .then(function(data){
-      var list = Array.isArray(data) ? data : (data && data.events);
-      if (!Array.isArray(list)) throw new Error('データ形式が違います');
-      var seen = {};
-      events.forEach(function(e){ seen[e.date + '|' + e.title] = e; });
-      var added = 0, updated = 0;
-      list.forEach(function(o, i){
-        if (!o || !o.title || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.date || ''))) return;
-        var key = o.date + '|' + o.title;
-        var cur = seen[key];
-        var rec = normalizeEvent(o, 'r' + Date.now() + '_' + i);
-        if (!rec) return;
-        if (cur) {
-          var ch = false;
-          if (o.time && !cur.time) { cur.time = o.time; ch = true; }
-          if (o.open && !cur.open) { cur.open = o.open; ch = true; }
-          if (o.venue && !cur.venue) { cur.venue = o.venue; ch = true; }
-          if (ch) updated++;
-        } else { events.push(rec); added++; }
-      });
-      lastRefresh = Date.now();
-      save(); renderAll(); syncChrome();
-      fab.classList.remove('spin');
-      toast(added || updated ? '更新しました：新規' + added + '件 / 補完' + updated + '件' : '最新の状態です');
-    })
-    .catch(function(err){
-      fab.classList.remove('spin');
-      toast('更新できませんでした（' + err.message + '）');
-    });
+  var done = function(msg){
+    fab.classList.remove('spin');
+    lastRefresh = Date.now();
+    save(); renderAll(); syncChrome();
+    if (msg) toast(msg);
+  };
+  /* まずクラウド（管理者が直した最新版）を確認 */
+  pullCloudEvents(function(n){
+    if (typeof n === 'number' && n > 0) { done('最新の予定に更新しました（' + n + '件）'); return; }
+    /* クラウドが無い／変わっていないときは公開JSONを見る */
+    fetch(CONFIG.dataUrl + '?t=' + Date.now(), { cache:'no-store' })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+      .then(function(data){
+        var list = Array.isArray(data) ? data : (data && data.events);
+        if (!Array.isArray(list)) throw new Error('データ形式が違います');
+        var seen = {};
+        events.forEach(function(e){ seen[e.date + '|' + e.title] = e; });
+        var added = 0, updated = 0;
+        list.forEach(function(o, i){
+          if (!o || !o.title || !/^\d{4}-\d{2}-\d{2}$/.test(String(o.date || ''))) return;
+          var key = o.date + '|' + o.title;
+          var cur = seen[key];
+          var rec = normalizeEvent(o, 'r' + Date.now() + '_' + i);
+          if (!rec) return;
+          if (cur) {
+            var ch = false;
+            if (o.time && !cur.time) { cur.time = o.time; ch = true; }
+            if (o.open && !cur.open) { cur.open = o.open; ch = true; }
+            if (o.venue && !cur.venue) { cur.venue = o.venue; ch = true; }
+            if (ch) updated++;
+          } else { events.push(rec); added++; }
+        });
+        done(added || updated ? '更新しました：新規' + added + '件 / 補完' + updated + '件' : '最新の状態です');
+      })
+      .catch(function(err){ done('更新できませんでした（' + err.message + '）'); });
+  });
 }
 function normalizeEvent(o, id){
   var gs = Array.isArray(o.groups) ? o.groups.slice() : (typeof o.groups === 'string' ? o.groups.split(',') : []);
@@ -2092,6 +2122,42 @@ function maybeFirstFriendGuide(){
   setTimeout(function(){ openGuide(true); }, 300);
 }
 
+/* ---------- クラウドの予定（全員に配る） ---------- */
+function pullCloudEvents(cb){
+  if (!cloud.on()) { cb && cb(null); return; }
+  cloud.rpc('events_get', {}).then(function(r){
+    if (!r || !r.ver) { cb && cb(null); return; }
+    if (r.ver === cloudVer()) { cb && cb(0); return; }
+    var list = Array.isArray(r.events) ? r.events : [];
+    if (!list.length) { cb && cb(0); return; }
+    var next = list.map(function(o, i){ return normalizeEvent(o, 'c' + i); }).filter(Boolean);
+    if (!next.length) { cb && cb(0); return; }
+    events = next;
+    setCloudVer(r.ver);
+    save(); renderAll(); syncChrome();
+    cb && cb(next.length);
+  }).catch(function(){ cb && cb(null); });
+}
+function pushCloudEvents(silent){
+  if (!cloud.on()) { toast('クラウド未接続のため公開できません'); return; }
+  if (!isAdmin) { toast('公開できるのは管理者だけです'); return; }
+  var payload = events.map(function(e){
+    return { id:String(e.id || evKey(e)), date:e.date, open:e.open || '', time:e.time || '',
+             groups:e.groups || [], type:e.type || 'live', title:e.title,
+             venue:e.venue || '', note:e.note || '', source:e.source || '' };
+  });
+  cloud.rpc('events_save', { p_pass:adminPass, p_events:payload }).then(function(r){
+    setCloudVer(r && r.ver ? r.ver : '');
+    if (!silent) toast('全員に公開しました（' + ((r && r.count) || payload.length) + '件）');
+    var box = $('#syncMsg');
+    if (box) box.textContent = '公開しました：' + ((r && r.count) || payload.length) + '件 ／ ' + fmtTime(Date.now());
+  }).catch(function(e){
+    toast('公開できませんでした：' + friendlyErr(e.message));
+    var box = $('#syncMsg');
+    if (box) box.textContent = '公開できませんでした：' + friendlyErr(e.message);
+  });
+}
+
 /* =========================================================
    プッシュ通知（OneSignal / 無料）
    アプリを閉じていても届きます。
@@ -2102,11 +2168,21 @@ const push = {
     var saved = '';
     try { saved = localStorage.getItem(STORE + '.osid') || ''; } catch(e){}
     if (saved) return saved.trim();
-    return (typeof CONFIG !== 'undefined' && CONFIG.oneSignalAppId) ? String(CONFIG.oneSignalAppId).trim() : '';
+    var builtin = (typeof CONFIG !== 'undefined' && CONFIG.oneSignalAppId) ? String(CONFIG.oneSignalAppId).trim() : '';
+    if (builtin) return builtin;
+    var remote = '';
+    try { remote = localStorage.getItem(STORE + '.osid.remote') || ''; } catch(e){}
+    return String(remote).trim();
   },
   saveAppId: function(id){
     id = String(id || '').trim();
     try { id ? localStorage.setItem(STORE + '.osid', id) : localStorage.removeItem(STORE + '.osid'); } catch(e){}
+  },
+  setRemote: function(id){
+    id = String(id || '').trim();
+    try { id ? localStorage.setItem(STORE + '.osid.remote', id) : localStorage.removeItem(STORE + '.osid.remote'); } catch(e){}
+    this._loaded = false;
+    if (id) this.init();
   },
   on: function(){ return !!this.appId(); },
   ready: function(){ return !!this._ready; },
@@ -2242,6 +2318,7 @@ function bind(){
       if (window.confirm('この予定を削除しますか？')) {
         events = events.filter(function(x){ return x.id !== del.dataset.del; });
         save(); closeSheets(); renderAll(); toast('削除しました');
+        if (cloud.on()) pushCloudEvents(true);
       }
       return;
     }
@@ -2280,7 +2357,9 @@ function bind(){
     } else {
       obj.id = 'm' + Date.now(); events.push(obj);
     }
-    save(); closeSheets(); renderAll(); toast(editingId ? '更新しました' : '追加しました');
+    save(); closeSheets(); renderAll();
+    toast(editingId ? '更新しました' : '追加しました');
+    if (isAdmin && cloud.on()) pushCloudEvents(true);
     editingId = null;
   });
 }
@@ -2305,12 +2384,23 @@ function setView(name){
 }
 
 /* ---------- 起動 ---------- */
+function loadRemoteConfig(){
+  if (!cloud.on()) { push.init(); return; }
+  var p;
+  try { p = cloud.rpc('config_get', {}); } catch(e){ push.init(); return; }
+  p.then(function(cfg){
+    if (cfg && cfg.onesignal_app_id) push.setRemote(cfg.onesignal_app_id);
+    push.init();
+  }).catch(function(){ push.init(); });
+}
+
 load();
 var savedTheme = 'light';
 try { savedTheme = localStorage.getItem(STORE + '.theme') || 'light'; } catch(e){}
 setTheme(savedTheme);
 selDate = TODAY_S;
 bind();
+loadRemoteConfig();
 syncChrome();
 renderAll();
 
@@ -2323,6 +2413,7 @@ if (!me) {
   setInterval(maybeNotify, 60 * 1000);
   var stale = !lastRefresh || (Date.now() - lastRefresh) > 6 * 3600 * 1000;
   if (stale) setTimeout(doRefresh, 800);
+  pullCloudEvents();
 }
 
 </script>
