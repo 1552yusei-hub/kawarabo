@@ -1451,6 +1451,7 @@ function notifTime(){
   return t;
 }
 function setNotifTime(t){
+  t = String(t || '').trim();
   if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) t = '21:00';
   try { localStorage.setItem(STORE + '.notiftime', t); } catch(e){}
 }
@@ -1458,6 +1459,45 @@ function notifHour(){
   return parseInt(notifTime().slice(0, 2), 10);
 }
 function timeLabelJP(t){ return t; }
+/* ---------- 通知まわりの小道具 ---------- */
+function restKeySet(){
+  try { return localStorage.getItem(STORE + '.osrest') === '1'; } catch(e){ return false; }
+}
+function setRestKeySet(on){
+  try { on ? localStorage.setItem(STORE + '.osrest', '1') : localStorage.removeItem(STORE + '.osrest'); } catch(e){}
+}
+function pushOn(){ return notifOn() && push.permission() === 'granted'; }
+function enablePush(){
+  return new Promise(function(res){
+    if (!('Notification' in window)) { toast('このブラウザは通知に対応していません'); res(false); return; }
+    if (push.on()) {
+      push.ask(function(r){
+        var ok = (r === 'granted');
+        setNotif(ok); push.sync();
+        if (ok) { if (push.optIn) push.optIn(); toast('通知をオンにしました'); }
+        else toast('通知が許可されませんでした');
+        res(ok);
+      });
+      return;
+    }
+    Notification.requestPermission().then(function(p){
+      var ok = (p === 'granted');
+      setNotif(ok); push.sync();
+      toast(ok ? '通知をオンにしました' : '通知が許可されませんでした');
+      res(ok);
+    });
+  });
+}
+function disablePush(){
+  return new Promise(function(res){
+    setNotif(false);
+    if (push.optOut) push.optOut();
+    push.sync();
+    toast('通知をオフにしました');
+    res(false);
+  });
+}
+
 function notifPanelHTML(){
   var perm = push.permission();
   var tm = notifTime();
@@ -1489,9 +1529,14 @@ function notifPanelHTML(){
   }
 
   return '<div class="switch"><div><div class="lab">通知する時刻</div><div class="sub">前日に推しの予定があるとき、この時刻にお知らせします（分まで指定できます）</div></div>' +
-    '<input type="time" id="notifTime" class="selhour" value="' + esc(tm) + '" min="18:00" max="23:59" step="60"></div>' +
-    '<div class="note" style="margin-top:8px">18:00〜23:59 のあいだで1分単位に設定できます。初期値は 21:00 です。' +
-      '（深夜0時台に受け取りたい場合は 00:xx を選ぶと「当日の予定」として届きます）</div>' +
+    '<input type="time" id="ntime" class="selhour" value="' + esc(tm) + '" step="60" aria-label="通知する時刻"></div>' +
+    '<div class="kv"><span>いまの設定</span><b id="ntimeNow">' + esc(tm) + '</b></div>' +
+    '<div class="btns" style="margin-top:8px">' +
+      ['18:00','19:00','20:00','21:00','22:00','23:00'].map(function(t){
+        return '<button type="button" class="btn tiny" data-ntime="' + t + '">' + t + '</button>';
+      }).join('') + '</div>' +
+    '<div class="note" style="margin-top:8px">1分単位で指定できます（例：21:07）。上のボタンはよく使う時刻のショートカットです。' +
+      '<br>深夜0時台に受け取りたい場合は 00:xx を選ぶと「当日の予定」として届きます。</div>' +
     '<div class="switch"><div><div class="lab">この端末でも通知する</div><div class="sub">アプリを開いているあいだ、同じ時刻にブラウザ通知を出します</div></div>' +
     '<button class="tgl" id="swNotif" aria-pressed="' + (notifOn() && perm === 'granted') + '" aria-label="通知"></button></div>' +
     pushState + idBox;
@@ -1640,15 +1685,26 @@ function bindSet(){
     me = null; isAdmin = false; adminPass = ''; save(); syncChrome(); renderAll(); openGate();
   });
   $('#btnRefresh2').addEventListener('click', doRefresh);
-  var nh = $('#notifTime');
+  var applyTime = function(val){
+    if (!val) return;
+    setNotifTime(val);
+    var now = $('#ntimeNow');
+    if (now) now.textContent = notifTime();
+    var inp = $('#ntime');
+    if (inp && inp.value !== notifTime()) inp.value = notifTime();
+    toast('通知する時刻を ' + notifTime() + ' にしました');
+    if (push.on()) push.sync();
+    maybeNotify();
+  };
+  var nh = $('#ntime');
   if (nh) {
-    nh.addEventListener('change', function(){
-      setNotifTime(this.value);
-      toast('通知する時刻を ' + notifTime() + ' にしました');
-      if (push.on()) push.sync();
-      maybeNotify();
+    ['change','input','blur'].forEach(function(ev){
+      nh.addEventListener(ev, function(){ if (this.value) applyTime(this.value); });
     });
   }
+  $$('#view-set [data-ntime]').forEach(function(b){
+    b.addEventListener('click', function(){ applyTime(b.dataset.ntime); });
+  });
   var osSave = $('#osSave');
   if (osSave) osSave.addEventListener('click', function(){
     var id = $('#osId').value.trim();
@@ -2261,6 +2317,18 @@ const push = {
         if (nick) OneSignal.login(String(nick));
         OneSignal.User.addTags(tags);
       } catch(e){}
+    });
+  },
+  optOut: function(){
+    if (!this.on()) return;
+    this._queue(function(OneSignal){
+      try { OneSignal.User.PushSubscription.optOut(); } catch(e){}
+    });
+  },
+  optIn: function(){
+    if (!this.on()) return;
+    this._queue(function(OneSignal){
+      try { OneSignal.User.PushSubscription.optIn(); } catch(e){}
     });
   },
   permission: function(){
