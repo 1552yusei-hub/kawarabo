@@ -1,0 +1,6 @@
+/OneSignalSDKWorker.js
+  Service-Worker-Allowed: /
+  Cache-Control: no-cache
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
