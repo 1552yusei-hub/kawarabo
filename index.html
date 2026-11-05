@@ -58,7 +58,7 @@ h1,h2,h3,p{margin:0}
 .who{font-size:11px;color:var(--ink2);background:var(--lav);padding:5px 10px;border-radius:999px;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* hero */
-.hero{position:relative;background:var(--ink);color:var(--paper);border-radius:22px;padding:20px;overflow:hidden;margin-bottom:14px}
+.hero{position:relative;background:var(--ink);color:#FBF9FD;border-radius:22px;padding:20px;overflow:hidden;margin-bottom:14px}
 html[data-theme="dark"] .hero{background:linear-gradient(140deg,#2A1040,#150E1F 60%)}
 .hero::after{content:"";position:absolute;right:-46px;top:-46px;width:170px;height:170px;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,46,126,.95),rgba(255,46,126,0) 68%);pointer-events:none}
 .hero-eyebrow{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.62);display:flex;align-items:center;gap:8px}
@@ -73,6 +73,10 @@ html[data-theme="dark"] .hero{background:linear-gradient(140deg,#2A1040,#150E1F 
 .hero-remind{margin-top:14px;background:rgba(255,46,126,.18);border:1px solid rgba(255,46,126,.45);border-radius:12px;padding:9px 12px;font-size:12.5px;display:flex;gap:8px;align-items:center}
 .hero-remind b{color:#FFC2D9}
 .hero-remind a{color:#fff;text-decoration:underline;text-underline-offset:3px}
+.hero-clock{display:flex;align-items:baseline;gap:9px;margin-top:12px}
+.hero-clock .lbl{font-size:9.5px;letter-spacing:.22em;color:rgba(255,255,255,.55)}
+.hero-clock .t{font-family:var(--f-display);font-weight:900;font-size:29px;line-height:1;letter-spacing:.01em;font-variant-numeric:tabular-nums;color:#fff}
+html[data-theme="dark"] .hero,html[data-theme="dark"] .hero-date,html[data-theme="dark"] .hero-clock .t{color:#FFFFFF}
 
 /* section */
 .sec{display:flex;align-items:baseline;gap:10px;margin:20px 0 10px}
@@ -268,7 +272,7 @@ main{padding-bottom:110px}
   .rail .d{font-size:29px}
   .modal{align-items:center}
   .sheet{border-radius:22px;padding-bottom:24px}
-  .fab{bottom:32px;right:calc(50% - 470px + 20px)}
+  .fab{bottom:calc(88px + env(safe-area-inset-bottom));right:calc(50% - 470px + 20px)}
 }
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
@@ -290,6 +294,47 @@ main{padding-bottom:110px}
 .tbl td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 .tbl tr:last-child td{border-bottom:0}
 .btn.tiny{padding:5px 9px;font-size:11px;border-radius:8px}
+
+/* --- 設定アコーディオン --- */
+.acc{background:var(--card);border:1px solid var(--line);border-radius:18px;margin-bottom:10px;overflow:hidden}
+.acc>summary{list-style:none;cursor:pointer;padding:15px 17px;display:flex;align-items:center;gap:10px}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary .at{font-family:var(--f-display);font-weight:900;font-size:15px}
+.acc>summary .as{font-size:10.5px;color:var(--ink3);margin-left:auto;text-align:right}
+.acc>summary .chev{width:16px;height:16px;flex:none;color:var(--ink3);transition:transform .2s}
+.acc[open]>summary .chev{transform:rotate(180deg)}
+.acc[open]>summary{border-bottom:1px dashed var(--line)}
+.acc-body{padding:15px 17px 18px}
+.acc-body .panel{border:0;padding:0;margin:0;background:none}
+.acc-body .subh,body .subh{font-family:var(--f-display);font-weight:900;font-size:13.5px;margin:18px 0 8px;display:flex;align-items:center;gap:8px}
+.admin-sep{display:flex;align-items:center;gap:10px;margin:26px 0 10px;color:var(--ink3);font-size:10.5px;letter-spacing:.06em}
+.admin-sep::before,.admin-sep::after{content:"";flex:1;height:1px;background:var(--line)}
+/* --- アイコン --- */
+.avt{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--lav);font-size:19px;line-height:1;flex:none;border:1px solid var(--line)}
+.avt.letter{font-family:var(--f-display);font-weight:900;font-size:16px;color:var(--pink-ink);background:var(--pink-soft);border-color:transparent}
+.avt.lg{width:60px;height:60px;font-size:29px}
+.avt.lg.letter{font-size:24px}
+.prof{display:flex;align-items:center;gap:14px;margin-bottom:12px}
+.prof .pmeta b{display:block;font-family:var(--f-display);font-weight:900;font-size:16px;line-height:1.3}
+.prof .pmeta span{font-size:11.5px;color:var(--ink3)}
+.avpick-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:6px}
+.avpick{aspect-ratio:1;border-radius:11px;border:1px solid var(--line);background:var(--paper);font-size:18px;display:grid;place-items:center;transition:all .15s}
+.avpick:hover{border-color:var(--line2)}
+.avpick[aria-pressed="true"]{border-color:var(--pink);background:var(--pink-soft);box-shadow:0 0 0 2px color-mix(in srgb,var(--pink) 28%,transparent)}
+@media (max-width:420px){.avpick-grid{grid-template-columns:repeat(6,1fr)}}
+.notice{background:var(--pink-soft);border:1px solid color-mix(in srgb,var(--pink) 30%,var(--line));border-radius:12px;padding:11px 13px;margin:4px 0 6px}
+.notice b{font-size:11.5px;color:var(--pink-ink);display:block;margin-bottom:5px}
+.notice ul{margin:0;padding-left:16px;font-size:11px;color:var(--ink2);line-height:1.75}
+.notice li{margin-bottom:2px}
+/* --- フレンド一覧 --- */
+.fpanel{padding:4px 16px}
+.fitem{width:100%;text-align:left;gap:12px}
+.fitem:hover{background:var(--lav);border-radius:10px}
+.fmeta{display:flex;flex-direction:column;min-width:0;flex:1}
+.fmeta b{font-size:13.5px}
+.fmeta .fsub{margin-left:0}
+.chev{width:15px;height:15px;flex:none;color:var(--ink3)}
+.frow .fbtns{flex:none}
 </style>
 </head>
 <body>
@@ -372,6 +417,15 @@ main{padding-bottom:110px}
       <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
+
+<div class="modal" id="modalFriend" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h3>フレンドの詳細</h3>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="detail-body" id="friendBody"></div>
   </div>
 </div>
 
@@ -562,6 +616,9 @@ const SEED = RAW.map(function(r, i){
     title:r[5], venue:r[6], source:r[7], note:''
   };
 });
+
+/* アカウント作成で選べるアイコン（絵文字） */
+const AVATARS = ['🌸','🎤','💖','🧸','🍑','🐰','🌙','⭐','🫧','🎀','🍓','🦋','🌼','🐱','🍭','💎','🎧','☁️','🍊','🪼','🩵','🖤','🌈','🍒'];
 
 /* =========================================================
    クラウド接続（Supabase / 無料）
@@ -782,8 +839,8 @@ function cardHTML(ev, opts){
         '<span class="tchip ' + ev.type + '">' + (TYPES[ev.type] || '予定') + '</span></div>' +
       '<div class="title">' + esc(ev.title) + '</div>' +
       '<div class="meta">' + meta.join('') + '</div></div>' +
-    '<button class="star ' + (on ? 'on' : '') + '" data-att="' + esc(ev.id || evKey(ev)) + '" aria-label="参戦予定" aria-pressed="' + on + '">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.6l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg></button>' +
+    (opts.star === false ? '' : '<button class="star ' + (on ? 'on' : '') + '" data-att="' + esc(ev.id || evKey(ev)) + '" aria-label="参戦予定" aria-pressed="' + on + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M12 3.6l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.8l5.9-.9z"/></svg></button>') +
     (opts.days === false ? '' : '<span class="days ' + (dl.soon ? 'soon' : '') + '">' + dl.txt + '</span>') +
   '</div>';
 }
@@ -818,6 +875,7 @@ function toast(msg){
    ログイン / アカウント作成
    ========================================================= */
 let gateMode = 'login';
+let gateAvatar = AVATARS[0];
 function openGate(){
   gateMode = 'login';
   $('#gate').classList.add('open');
@@ -830,6 +888,9 @@ function closeGate(){
 }
 function renderGate(){
   var login = gateMode === 'login';
+  var avatars = AVATARS.map(function(a, i){
+    return '<button type="button" class="avpick" data-av="' + esc(a) + '" aria-pressed="' + (a === gateAvatar) + '" aria-label="アイコン' + (i + 1) + '">' + a + '</button>';
+  }).join('');
   $('#gate').innerHTML = '<div class="gate-in">' +
     '<div class="mark">KL</div>' +
     '<h1>推しの予定を、<br>ひとつの手帳に。</h1>' +
@@ -842,10 +903,17 @@ function renderGate(){
       '<form id="gateForm">' +
         '<div class="field"><label for="gNick">ニックネーム</label>' +
           '<input id="gNick" autocomplete="nickname" required maxlength="16" placeholder="例：かわらぼ太郎"></div>' +
+        (login ? '' :
+          '<div class="field"><label>アイコン（フレンド一覧に表示されます）</label>' +
+          '<div class="avpick-grid" id="gAvatars">' + avatars + '</div></div>') +
         '<div class="field"><label for="gPass">パスワード（4文字以上）</label>' +
           '<input id="gPass" type="password" autocomplete="' + (login ? 'current-password' : 'new-password') + '" required minlength="4" placeholder="••••••"></div>' +
         (login ? '' : '<div class="field"><label for="gPass2">パスワード（確認）</label>' +
           '<input id="gPass2" type="password" required minlength="4" placeholder="••••••"></div>') +
+        (login ? '' : '<div class="notice"><b>作成前に確認してください</b>' +
+          '<ul><li>ニックネーム・パスワード・アイコンは<b>あとから変更できません</b>。</li>' +
+          '<li>パスワードの<b>再設定もできません</b>。忘れると入れなくなります。</li>' +
+          '<li>選んだアイコンは<b>フレンド一覧に表示されます</b>。</li></ul></div>') +
         '<div class="err" id="gErr"></div>' +
         '<div class="btns" style="margin-top:6px">' +
           '<button class="btn primary" type="submit" id="gSubmit" style="width:100%;justify-content:center">' +
@@ -862,6 +930,14 @@ function renderGate(){
   $$('#gate [data-gm]').forEach(function(b){
     b.addEventListener('click', function(){ gateMode = b.dataset.gm; renderGate(); });
   });
+  var avWrap = $('#gAvatars');
+  if (avWrap) avWrap.addEventListener('click', function(e){
+    var b = e.target.closest('[data-av]');
+    if (!b) return;
+    gateAvatar = b.dataset.av;
+    $$('#gAvatars .avpick').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+  });
+
   $('#gateForm').addEventListener('submit', function(e){
     e.preventDefault();
     var nick = $('#gNick').value.trim();
@@ -877,10 +953,19 @@ function renderGate(){
 
     if (cloud.on()) {
       var fn = gateMode === 'signup' ? 'signup' : 'login';
-      cloud.rpc(fn, { p_nick:nick, p_pass:pw }).then(function(res){
+      var call = gateMode === 'signup'
+        ? cloud.rpc(fn, { p_nick:nick, p_pass:pw, p_avatar:gateAvatar }).catch(function(e0){
+            if (/Could not find|does not exist|function/i.test(String(e0.message || ''))) {
+              return cloud.rpc('signup', { p_nick:nick, p_pass:pw });
+            }
+            throw e0;
+          })
+        : cloud.rpc(fn, { p_nick:nick, p_pass:pw });
+      call.then(function(res){
         var p = Array.isArray(res) ? res[0] : res;
         if (!p || !p.token) throw new Error('ログインできませんでした');
-        me = { nick:p.nick || nick, token:p.token, oshi:p.oshi || [], atts:p.atts || [] };
+        me = { nick:p.nick || nick, token:p.token, oshi:p.oshi || [], atts:p.atts || [],
+               avatar:p.avatar || (gateMode === 'signup' ? gateAvatar : '') };
         save(); closeGate(); syncChrome(); renderAll();
         if (!me.oshi.length) startOnboarding();
         else { toast(me.nick + 'さん、おかえりなさい'); maybeNotify(); }
@@ -894,9 +979,9 @@ function renderGate(){
     var users = readUsers();
     if (gateMode === 'signup') {
       if (users[nick]) { btn.disabled = false; btn.textContent = '作成してはじめる'; err.textContent = 'そのニックネームはこの端末で使われています'; return; }
-      users[nick] = { hash:hash(pw), oshi:[], atts:[] };
+      users[nick] = { hash:hash(pw), oshi:[], atts:[], avatar:gateAvatar };
       writeUsers(users);
-      me = { nick:nick, token:'local', oshi:[], atts:[] };
+      me = { nick:nick, token:'local', oshi:[], atts:[], avatar:gateAvatar };
       save(); closeGate(); startOnboarding(); return;
     }
     var u = users[nick];
@@ -905,9 +990,14 @@ function renderGate(){
       err.textContent = 'ニックネームかパスワードが違います';
       return;
     }
-    me = { nick:nick, token:'local', oshi:u.oshi || [], atts:u.atts || [] };
+    me = { nick:nick, token:'local', oshi:u.oshi || [], atts:u.atts || [], avatar:u.avatar || '' };
     save(); closeGate(); syncChrome(); renderAll(); toast(nick + 'さん、おかえりなさい');
   });
+}
+function avtHTML(nick, av, extra){
+  var t = String(av || '').trim();
+  if (t) return '<span class="avt ' + (extra || '') + '">' + esc(t) + '</span>';
+  return '<span class="avt letter ' + (extra || '') + '">' + esc(String(nick || '?').slice(0, 1)) + '</span>';
 }
 function friendlyErr(m){
   m = String(m || '');
@@ -928,6 +1018,7 @@ function persistMe(){
     if (users[me.nick]) {
       users[me.nick].oshi = me.oshi;
       users[me.nick].atts = me.atts;
+      users[me.nick].avatar = me.avatar || '';
       writeUsers(users);
     }
   }
@@ -1013,6 +1104,7 @@ function renderToday(){
     '<div class="hero-main"><div class="hero-date">' + pad(d.getMonth() + 1) + '.' + pad(d.getDate()) +
       '<small>' + WEEK[d.getDay()] + '</small></div>' +
       '<div class="hero-sub">' + (me && me.oshi.length ? esc(oshiMembers().slice(0, 2).map(function(m){ return m.n; }).join('・')) + ' の推し活' : '今日のカワラボ') + '</div></div>' +
+    '<div class="hero-clock"><span class="lbl">NOW</span><span class="t" id="liveClock">--:--:--</span></div>' +
     '<div class="hero-stats">' +
       '<div class="stat"><b>' + todays.length + '</b><span>今日</span></div>' +
       '<div class="stat"><b>' + week.length + '</b><span>7日以内</span></div>' +
@@ -1038,6 +1130,7 @@ function renderToday(){
   html += '<div class="sec"><h2>7日以内</h2><span class="count">' + next.length + '件</span></div>';
   html += next.length ? datedGroups(next) : '<div class="empty"><p>7日以内の予定は登録されていません。</p></div>';
   $('#view-today').innerHTML = html;
+  startClock();
 }
 
 function renderList(){
@@ -1118,7 +1211,7 @@ function friendsHTML(){
   var html = '<div class="sec"><h2>フレンド</h2><span class="count">' + friends.list.length + '人</span></div>';
   if (!cloud.on()) {
     return html + emptyHTML('フレンド機能はクラウド接続で使えます',
-      '設定 →「クラウド接続」でURLとキーを入れると、友達と参戦予定を見せ合えます。',
+      '設定 →「データと接続」でURLとキーを入れると、友達と参戦予定を見せ合えます。',
       '<div class="btns" style="justify-content:center"><button class="btn" id="goCloud">設定を開く</button></div>');
   }
   if (!me || !me.token || me.token === 'local') {
@@ -1133,34 +1226,38 @@ function friendsHTML(){
 
   if (friends.incoming.length) {
     html += '<div class="panel"><h3>届いている申請</h3>' + friends.incoming.map(function(f){
-      return '<div class="frow"><div><b>' + esc(f.nick) + '</b><span class="fsub">さんから申請</span></div>' +
+      return '<div class="frow">' + avtHTML(f.nick, f.avatar) +
+        '<span class="fmeta"><b>' + esc(f.nick) + '</b><span class="fsub">さんから申請</span></span>' +
         '<div class="fbtns"><button class="btn primary" data-facc="' + esc(f.nick) + '">承認</button>' +
         '<button class="btn" data-frej="' + esc(f.nick) + '">ことわる</button></div></div>';
     }).join('') + '</div>';
   }
   if (friends.outgoing.length) {
     html += '<div class="panel"><h3>返事待ち</h3>' + friends.outgoing.map(function(f){
-      return '<div class="frow"><div><b>' + esc(f.nick) + '</b><span class="fsub">さん（承認待ち）</span></div></div>';
+      return '<div class="frow">' + avtHTML(f.nick, f.avatar) +
+        '<span class="fmeta"><b>' + esc(f.nick) + '</b><span class="fsub">さん（承認待ち）</span></span></div>';
     }).join('') + '</div>';
   }
 
-  html += '<div class="sec"><h2>フレンドの参戦予定</h2><span class="count">' + friends.board.length + '件</span></div>';
+  html += '<div class="sec"><h2>フレンド一覧</h2><span class="count">' + friends.list.length + '人</span></div>';
   if (!friends.list.length) {
     html += emptyHTML('まだフレンドがいません', '上の欄からニックネームで申請してみてください。');
-  } else if (!friends.board.length) {
-    html += '<div class="empty"><p>フレンドはいますが、これからの参戦予定はまだありません。</p></div>';
   } else {
-    var byNick = {};
-    friends.board.forEach(function(b){ (byNick[b.nick] = byNick[b.nick] || []).push(b); });
-    Object.keys(byNick).forEach(function(nick){
-      html += '<div class="panel"><h3>' + esc(nick) + ' さんの参戦予定</h3>' +
-        '<div class="cards" style="margin-top:10px">' + byNick[nick].sort(sortEv).map(function(b){
-          return cardHTML({ id:'f_' + b.key, date:b.date, title:b.title, time:b.time, open:'', venue:b.venue, groups:b.groups || [], type:b.type || 'live' });
-        }).join('') + '</div></div>';
-    });
+    html += '<div class="panel fpanel">' + friends.list.map(function(f){
+      var cnt = (friends.board || []).filter(function(b){ return b.nick === f.nick; }).length;
+      var oc = (f.oshi || []).length;
+      return '<button class="frow fitem" data-fdetail="' + esc(f.nick) + '">' +
+        avtHTML(f.nick, f.avatar) +
+        '<span class="fmeta"><b>' + esc(f.nick) + '</b>' +
+        '<span class="fsub">推し ' + oc + '人 ・ 参戦予定 ' + cnt + '件</span></span>' +
+        '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>' +
+        '</button>';
+    }).join('') + '</div>';
+    html += '<div class="note">フレンドをタップすると、その人の推しと参戦予定が見られます。</div>';
   }
   return html;
 }
+
 function bindFriendUI(){
   var raw = $('#freqSend');
   if (raw) raw.addEventListener('click', function(){
@@ -1183,9 +1280,13 @@ function bindFriendUI(){
         .then(loadFriends).catch(function(e){ toast(e.message); });
     });
   });
+  $$('#view-attend [data-fdetail]').forEach(function(b){
+    b.addEventListener('click', function(){ openFriendDetail(b.dataset.fdetail); });
+  });
   var go = $('#goCloud');
   if (go) go.addEventListener('click', function(){ setView('set'); });
 }
+
 function loadFriends(){
   if (!cloud.on() || !me || !me.token || me.token === 'local') { friends = { list:[], incoming:[], outgoing:[], board:[], err:'' }; return; }
   Promise.all([
@@ -1205,25 +1306,61 @@ function loadFriends(){
 }
 
 /* ---------- 設定 ---------- */
+var accState = {};
+function accHTML(key, title, sub, body, dflt){
+  var open = accState[key];
+  if (open === undefined) open = !!dflt;
+  return '<details class="acc" data-acc="' + key + '"' + (open ? ' open' : '') + '>' +
+    '<summary><span class="at">' + esc(title) + '</span><span class="as">' + esc(sub) + '</span>' +
+    '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg></summary>' +
+    '<div class="acc-body">' + body + '</div></details>';
+}
+function notifOn(){
+  try { return localStorage.getItem(STORE + '.notif') === '1'; } catch(e){ return false; }
+}
+function notifPanelHTML(){
+  var perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  var on = notifOn() && perm === 'granted';
+  var sub = perm === 'granted' ? 'ブラウザの通知でお知らせします'
+          : perm === 'denied' ? 'ブラウザで通知がブロックされています'
+          : perm === 'unsupported' ? 'このブラウザは通知に対応していません'
+          : 'まだ許可されていません';
+  return '<div class="switch"><div><div class="lab">推しの予定を通知</div><div class="sub">' + sub + '</div></div>' +
+    '<button class="tgl" id="swNotif" aria-pressed="' + on + '" aria-label="通知"></button></div>' +
+    '<div class="note">今日・明日に推しの予定があるとき、ブラウザの通知でお知らせします（アプリを開いているあいだ）。</div>';
+}
 function renderSet(){
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
   var c = cloud.cfg();
-  var html = '<div class="sec"><h2>設定</h2><span class="count">' + (me ? esc(me.nick) : 'ゲスト') + '</span></div>';
+  var nick = me ? me.nick : 'ゲスト';
+  var html = '<div class="sec"><h2>設定</h2><span class="count">' + esc(nick) + '</span></div>';
 
-  html += '<div class="panel"><h3>表示</h3>' +
-    '<div class="switch"><div><div class="lab">ダークモード</div><div class="sub">暗い場所でも目にやさしい表示</div></div>' +
-    '<button class="tgl" id="swDark" aria-pressed="' + dark + '" aria-label="ダークモード"></button></div></div>';
-
-  html += '<div class="panel"><h3>あなたの設定</h3>' +
-    '<div class="kv"><span>ニックネーム</span><b>' + (me ? esc(me.nick) : '未ログイン') + '</b></div>' +
-    '<div class="kv"><span>推し</span><b>' + (me && me.oshi.length ? me.oshi.length + '人' : '未設定') + '</b></div>' +
-    '<div class="kv"><span>参戦予定</span><b>' + (me ? me.atts.length : 0) + '件</b></div>' +
+  /* 1. アカウント */
+  var acct = '<div class="prof">' + avtHTML(nick, me && me.avatar, 'lg') +
+    '<div class="pmeta"><b>' + esc(nick) + '</b><span>' +
+      (me ? '推し ' + me.oshi.length + '人 ・ 参戦予定 ' + me.atts.length + '件' : 'ログインしていません') +
+    '</span></div></div>' +
     '<div class="kv"><span>接続モード</span><b>' + (cloud.on() ? (cloud.isBuiltin() ? 'クラウド（自動接続）' : 'クラウド（手動設定）') : 'この端末だけ') + '</b></div>' +
+    '<div class="kv"><span>アイコン</span><b>' + (me && me.avatar ? esc(me.avatar) : '未設定') + '</b></div>' +
     '<div class="btns"><button class="btn" id="btnOshi">推しを変更</button>' +
     '<button class="btn" id="btnLogout">ログアウト</button></div>' +
-    '<div class="note">推しと参戦予定は、' + (cloud.on() ? 'クラウドに保存され、フレンドにだけ見えます。' : 'この端末の中だけに保存されます。') + '</div></div>';
+    '<div class="note">ニックネーム・アイコン・パスワードは、あとから変更できません。パスワードの再設定もできません。</div>';
+  html += accHTML('acct', 'アカウント', 'プロフィール・推し・ログアウト', acct, true);
 
-  html += '<div class="panel"><h3>クラウド接続</h3>' +
+  /* 2. 表示 */
+  var disp = '<div class="switch"><div><div class="lab">ダークモード</div><div class="sub">暗い場所でも目にやさしい表示</div></div>' +
+    '<button class="tgl" id="swDark" aria-pressed="' + dark + '" aria-label="ダークモード"></button></div>';
+  html += accHTML('disp', '表示', 'ダークモード', disp, false);
+
+  /* 3. 通知 */
+  html += accHTML('notif', '通知', '推しの予定のお知らせ', notifPanelHTML(), false);
+
+  /* 4. データと接続 */
+  var data = '<div class="kv"><span>最終更新</span><b>' + (lastRefresh ? fmtTime(lastRefresh) : '未取得') + '</b></div>' +
+    '<div class="kv"><span>登録されている予定</span><b>' + events.length + '件</b></div>' +
+    '<div class="btns"><button class="btn primary" id="btnRefresh2">いま更新する</button></div>' +
+    '<div class="note">更新は無料です。Gensparkのクレジットは使いません。右下の更新ボタンでも同じことができます。</div>' +
+    '<h4 class="subh">クラウド接続</h4>' +
     '<p class="lead">友達と参戦予定を見せ合うには接続が必要です。無料のSupabaseを使います。</p>' +
     '<div class="field"><label for="cUrl">Project URL</label><input id="cUrl" placeholder="https://xxxxx.supabase.co" value="' + (c ? esc(c.url) : '') + '"></div>' +
     '<div class="field"><label for="cKey">publishable key（sb_publishable_… または eyJ…）</label><input id="cKey" placeholder="sb_publishable_..." value="' + (c ? esc(c.key) : '') + '"></div>' +
@@ -1232,38 +1369,35 @@ function renderSet(){
     (cloud.on() ? '<button class="btn danger" id="cOff">接続を解除</button>' : '') + '</div>' +
     '<div class="note" id="cMsg">' + (!cloud.on() ? '未接続。このままでも予定の閲覧・参戦予定の記録は使えます。'
       : cloud.isBuiltin() ? 'このサイトは最初から接続されています。設定は不要です。'
-      : '接続済み：' + esc(c.url)) + '</div></div>';
+      : '接続済み：' + esc(c.url)) + '</div>';
+  html += accHTML('data', 'データと接続', '予定の更新・クラウド接続', data, false);
 
-  if (isAdmin) html += adminPanelHTML(); else html += adminFormHTML();
-
-  html += '<div class="panel"><h3>情報の更新</h3>' +
-    '<p class="lead">右下の更新ボタン、または下のボタンで最新の公開データを読み込みます。</p>' +
-    '<div class="kv"><span>最終更新</span><b>' + (lastRefresh ? fmtTime(lastRefresh) : '未取得') + '</b></div>' +
-    '<div class="kv"><span>登録されている予定</span><b>' + events.length + '件</b></div>' +
-    '<div class="btns"><button class="btn primary" id="btnRefresh2">いま更新する</button></div>' +
-    '<div class="note">更新は無料です。Gensparkのクレジットは使いません。</div></div>';
-
-  html += '<div class="panel"><h3>この手帳について</h3>' +
-    '<div class="kv"><span>運営</span><b>非公式ファンサイト</b></div>' +
+  /* 5. このアプリについて */
+  var about = '<div class="kv"><span>運営</span><b>非公式ファンサイト</b></div>' +
     '<div class="kv"><span>予定の出典</span><b>公式サイト・公式X</b></div>' +
     '<div class="note">日時・出演者は変わることがあります。チケット購入前は必ず公式で確認してください。</div>' +
-    '<div class="btns"><a class="btn" href="' + KAWAI + '/live_information/schedule/list" target="_blank" rel="noopener">公式スケジュールを開く</a></div></div>';
+    '<div class="btns"><a class="btn" id="btnTutorial" href="tutorial.html" target="_blank" rel="noopener">あそびかたを見る</a>' +
+    '<a class="btn" href="' + KAWAI + '/live_information/schedule/list" target="_blank" rel="noopener">公式スケジュール</a></div>';
+  html += accHTML('about', 'このアプリについて', 'あそびかた・出典', about, false);
+
+  /* 6. 管理者設定（一番下） */
+  html += '<div class="admin-sep"><span>ここから下は管理者だけのメニューです</span></div>';
+  html += accHTML('admin', '管理者設定', isAdmin ? '予定の編集・アカウント管理' : 'ログインが必要です',
+    isAdmin ? adminPanelHTML() : adminFormHTML(), false);
 
   $('#view-set').innerHTML = html;
   bindSet();
 }
 
 function adminPanelHTML(){
-  var html = '<div class="panel"><h3>管理者メニュー</h3>' +
-    '<p class="lead">ログイン中：' + esc(CONFIG.adminId) + '</p>';
+  var html = '<p class="lead">ログイン中：' + esc(CONFIG.adminId) + '</p>';
   html += '<ol class="steps">' +
     '<li><div class="no">1</div><div><b>予定を直す</b><p>画面右上の＋から追加、カードを開いて編集・削除できます。</p></div></li>' +
     '<li><div class="no">2</div><div><b>公開用データを書き出す</b><p>events.json を保存してサイトに上書きすると全員に反映されます。</p></div></li>' +
   '</ol><div class="btns"><button class="btn primary" id="btnPublish">公開用JSONを書き出す</button>' +
   '<button class="btn" id="btnBackup">バックアップ</button></div>';
 
-  html += '<div class="sec" style="margin-top:20px"><h2 style="font-size:15px">アカウント一覧</h2>' +
-          '<span class="count" id="accCount"></span></div>';
+  html += '<h4 class="subh">アカウント一覧 <span class="count" id="accCount" style="font-size:11px;color:var(--ink3)"></span></h4>';
   if (!cloud.on()) {
     html += '<div class="note">クラウド接続をすると、登録した人の一覧と削除がここでできます。いまは「この端末だけモード」なので、あなたの端末に作ったアカウントだけが対象です。</div>';
     html += localAccountsTable();
@@ -1273,12 +1407,13 @@ function adminPanelHTML(){
             '<div class="note">クラウドに登録された全員が表示されます。別のブラウザで作ったアカウントもここに出ます。</div>';
     var lok = localAccountsTable();
     if (lok.indexOf('<table') === 0 || lok.indexOf('<div class="table-wrap"') === 0) {
-      html += '<div class="sec" style="margin-top:16px"><h2 style="font-size:14px">この端末だけのアカウント</h2></div>' + lok;
+      html += '<h4 class="subh">この端末だけのアカウント</h4>' + lok;
     }
   }
-  html += '<div class="btns"><button class="btn danger" id="btnAdminOut">管理者ログアウト</button></div></div>';
+  html += '<div class="btns"><button class="btn danger" id="btnAdminOut">管理者ログアウト</button></div>';
   return html;
 }
+
 function localAccountsTable(){
   var users = readUsers();
   var nicks = Object.keys(users);
@@ -1589,6 +1724,33 @@ function maybeNotify(){
     });
   } catch(e){}
 }
+function openFriendDetail(nick){
+  var f = null;
+  (friends.list || []).forEach(function(x){ if (x.nick === nick) f = x; });
+  if (!f) f = { nick:nick, oshi:[], avatar:'' };
+  var ms = (f.oshi || []).map(function(id){ return MEMBYID[id]; }).filter(Boolean);
+  var board = (friends.board || []).filter(function(b){ return b.nick === nick; }).sort(sortEv);
+  var html = '<div class="prof">' + avtHTML(nick, f.avatar, 'lg') +
+    '<div class="pmeta"><b>' + esc(nick) + '</b><span>フレンド</span></div></div>' +
+    '<div class="sec" style="margin:16px 0 8px"><h2 style="font-size:14px">推し</h2><span class="count">' + ms.length + '人</span></div>';
+  if (ms.length) {
+    html += '<div class="member-row">' + ms.map(function(m){
+      return '<div class="mem" style="--c:' + m.c + '"><span class="face">' + esc(m.n.slice(0, 1)) + '</span>' +
+        '<span class="nm">' + esc(m.n) + '</span><span class="gr">' + esc(GROUPS[m.g].short) + '</span></div>';
+    }).join('') + '</div>';
+  } else {
+    html += '<div class="note">推しは未設定か、まだ公開されていません。</div>';
+  }
+  html += '<div class="sec" style="margin:18px 0 8px"><h2 style="font-size:14px">参戦予定</h2><span class="count">' + board.length + '件</span></div>';
+  html += board.length
+    ? '<div class="cards">' + board.map(function(b){
+        return cardHTML({ id:'f_' + b.key, date:b.date, title:b.title, time:b.time, open:'', venue:b.venue,
+          groups:b.groups || [], type:b.type || 'live' }, { days:false, star:false });
+      }).join('') + '</div>'
+    : '<div class="note">これからの参戦予定はまだありません。</div>';
+  $('#friendBody').innerHTML = html;
+  openSheet('modalFriend');
+}
 
 /* =========================================================
    起動とイベント
@@ -1679,6 +1841,18 @@ function bind(){
   });
 }
 
+var clockTimer = null;
+function startClock(){
+  if (clockTimer) { tickClock(); return; }
+  tickClock();
+  clockTimer = setInterval(tickClock, 1000);
+}
+function tickClock(){
+  var el = document.getElementById('liveClock');
+  if (!el) return;
+  var d = new Date();
+  el.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+}
 function setView(name){
   $$('.view').forEach(function(v){ v.hidden = v.id !== 'view-' + name; });
   $$('.tabbar button').forEach(function(b){ b.setAttribute('aria-selected', String(b.dataset.view === name)); });
