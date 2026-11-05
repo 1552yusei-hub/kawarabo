@@ -335,6 +335,31 @@ main{padding-bottom:110px}
 .fmeta .fsub{margin-left:0}
 .chev{width:15px;height:15px;flex:none;color:var(--ink3)}
 .frow .fbtns{flex:none}
+
+/* --- 会場リンク --- */
+.vlink{display:inline-flex;align-items:center;gap:3px;color:var(--pink-ink);text-decoration:none;border-bottom:1px dotted color-mix(in srgb,var(--pink) 55%,transparent);padding-bottom:1px;font-weight:500}
+.vlink svg{width:12px;height:12px;flex:none;opacity:.9}
+.vlink:hover{border-bottom-style:solid}
+.dnote{font-size:10px;color:var(--ink3);margin-top:3px}
+html[data-theme="dark"] .vlink{color:var(--pink)}
+/* --- アイコン（写真） --- */
+.avt.has-photo{padding:0;overflow:hidden;background:var(--lav)}
+.avt img{width:100%;height:100%;object-fit:cover;display:block;border-radius:50%}
+.avt.sm{width:24px;height:24px;font-size:12px;display:inline-grid;vertical-align:-6px;margin-right:6px}
+.avrow{display:flex;align-items:center;gap:14px}
+.avpreview{width:74px;height:74px;flex:none;display:grid;place-items:center}
+.avpreview .avt{width:74px;height:74px;font-size:26px}
+.avside{display:flex;flex-direction:column;gap:6px}
+.avside .sub{font-size:10.5px;color:var(--ink3)}
+.nowrap{white-space:nowrap;font-variant-numeric:tabular-nums}
+/* --- フレンド詳細 --- */
+.fwho{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink2);margin:2px 0 4px}
+/* --- ガイド --- */
+.guide{display:flex;flex-direction:column;gap:12px}
+.gstep{display:grid;grid-template-columns:26px 1fr;gap:10px}
+.gstep .gn{width:26px;height:26px;border-radius:50%;background:var(--pink);color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700}
+.gstep b{display:block;font-size:13px;margin-bottom:2px}
+.gstep p{font-size:11.5px;color:var(--ink2);line-height:1.7}
 </style>
 </head>
 <body>
@@ -426,6 +451,16 @@ main{padding-bottom:110px}
       <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
     <div class="detail-body" id="friendBody"></div>
+  </div>
+</div>
+
+<div class="modal" id="modalGuide" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h3>はじめてのフレンド追加</h3>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="detail-body" id="guideBody"></div>
+    <div class="btns"><button class="btn primary" data-close style="width:100%;justify-content:center">わかった</button></div>
   </div>
 </div>
 
@@ -802,6 +837,43 @@ function isOshiEvent(ev){
 /* =========================================================
    共通パーツ
    ========================================================= */
+function mapURL(v){
+  return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(String(v || '').trim());
+}
+function mapLink(v){
+  if (!v) return '';
+  return '<a class="vlink" href="' + mapURL(v) + '" target="_blank" rel="noopener" title="Googleマップで経路を開く">' +
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 21s-7-5.2-7-11a7 7 0 0114 0c0 5.8-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>' +
+    '<span>' + esc(v) + '</span></a>';
+}
+function isPhoto(a){ return /^data:image\//.test(String(a || '')); }
+/* 写真を選んで正方形に縮小 → 軽いJPEGのdataURLにする */
+function readImageFile(file, cb){
+  if (!file) { cb(''); return; }
+  if (!/^image\//.test(file.type || '')) { toast('画像ファイルを選んでください'); cb(''); return; }
+  var fr = new FileReader();
+  fr.onload = function(){
+    var img = new Image();
+    img.onload = function(){
+      var size = 176, c = document.createElement('canvas');
+      c.width = size; c.height = size;
+      var ctx = c.getContext('2d');
+      var r = Math.max(size / img.width, size / img.height);
+      var w = img.width * r, h = img.height * r;
+      ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+      var q = 0.85, out = '';
+      try { out = c.toDataURL('image/jpeg', q); } catch(e){ out = ''; }
+      while (out.length > 42000 && q > 0.4) { q -= 0.15; try { out = c.toDataURL('image/jpeg', q); } catch(e){ break; } }
+      cb(out);
+    };
+    img.onerror = function(){ toast('この画像は読み込めませんでした'); cb(''); };
+    img.src = fr.result;
+  };
+  fr.onerror = function(){ toast('画像を読めませんでした'); cb(''); };
+  fr.readAsDataURL(file);
+}
+
+
 function groupChips(gs, max){
   max = max || 2;
   var html = (gs || []).slice(0, max).map(function(k){
@@ -829,7 +901,7 @@ function cardHTML(ev, opts){
   var dl = daysLabel(ev);
   var on = isAttending(evKey(ev));
   var meta = [timeLabel(ev)];
-  if (ev.venue) meta.push('<span>' + esc(ev.venue) + '</span>');
+  if (ev.venue) meta.push(mapLink(ev.venue));
   var cls = 'card' + (daysFrom(ev.date) < 0 ? ' past' : '') + (isOshiEvent(ev) ? ' oshi-hit' : '');
   return '<div class="' + cls + '" role="button" tabindex="0" data-id="' + esc(ev.id || evKey(ev)) + '" style="--c:' + g.color + '">' +
     '<div class="rail"><span class="m">' + (d.getMonth() + 1) + '月</span>' +
@@ -875,7 +947,7 @@ function toast(msg){
    ログイン / アカウント作成
    ========================================================= */
 let gateMode = 'login';
-let gateAvatar = AVATARS[0];
+let gateAvatar = '';
 function openGate(){
   gateMode = 'login';
   $('#gate').classList.add('open');
@@ -888,9 +960,6 @@ function closeGate(){
 }
 function renderGate(){
   var login = gateMode === 'login';
-  var avatars = AVATARS.map(function(a, i){
-    return '<button type="button" class="avpick" data-av="' + esc(a) + '" aria-pressed="' + (a === gateAvatar) + '" aria-label="アイコン' + (i + 1) + '">' + a + '</button>';
-  }).join('');
   $('#gate').innerHTML = '<div class="gate-in">' +
     '<div class="mark">KL</div>' +
     '<h1>推しの予定を、<br>ひとつの手帳に。</h1>' +
@@ -904,8 +973,16 @@ function renderGate(){
         '<div class="field"><label for="gNick">ニックネーム</label>' +
           '<input id="gNick" autocomplete="nickname" required maxlength="16" placeholder="例：かわらぼ太郎"></div>' +
         (login ? '' :
-          '<div class="field"><label>アイコン（フレンド一覧に表示されます）</label>' +
-          '<div class="avpick-grid" id="gAvatars">' + avatars + '</div></div>') +
+          '<div class="field"><label>アイコン（自分の写真から選べます）</label>' +
+            '<div class="avrow">' +
+              '<div class="avpreview" id="gAvPreview"></div>' +
+              '<div class="avside">' +
+                '<input type="file" id="gAvFile" accept="image/*" hidden>' +
+                '<div class="btns" style="margin:0"><button type="button" class="btn" id="gAvPick">写真を選ぶ</button>' +
+                '<button type="button" class="btn" id="gAvClear" hidden>はずす</button></div>' +
+                '<div class="sub">フレンド一覧に表示されます</div>' +
+              '</div>' +
+            '</div></div>') +
         '<div class="field"><label for="gPass">パスワード（4文字以上）</label>' +
           '<input id="gPass" type="password" autocomplete="' + (login ? 'current-password' : 'new-password') + '" required minlength="4" placeholder="••••••"></div>' +
         (login ? '' : '<div class="field"><label for="gPass2">パスワード（確認）</label>' +
@@ -930,13 +1007,22 @@ function renderGate(){
   $$('#gate [data-gm]').forEach(function(b){
     b.addEventListener('click', function(){ gateMode = b.dataset.gm; renderGate(); });
   });
-  var avWrap = $('#gAvatars');
-  if (avWrap) avWrap.addEventListener('click', function(e){
-    var b = e.target.closest('[data-av]');
-    if (!b) return;
-    gateAvatar = b.dataset.av;
-    $$('#gAvatars .avpick').forEach(function(x){ x.setAttribute('aria-pressed', String(x === b)); });
+  function paintAv(){
+    var box = $('#gAvPreview');
+    if (box) box.innerHTML = avtHTML('', gateAvatar, 'lg');
+    var cl = $('#gAvClear');
+    if (cl) cl.hidden = !gateAvatar;
+  }
+  paintAv();
+  var fileIn = $('#gAvFile');
+  if (fileIn) fileIn.addEventListener('change', function(){
+    var f = this.files && this.files[0];
+    readImageFile(f, function(data){ gateAvatar = data; paintAv(); });
   });
+  var pick = $('#gAvPick');
+  if (pick) pick.addEventListener('click', function(){ if (fileIn) fileIn.click(); });
+  var clr = $('#gAvClear');
+  if (clr) clr.addEventListener('click', function(){ gateAvatar = ''; if (fileIn) fileIn.value = ''; paintAv(); });
 
   $('#gateForm').addEventListener('submit', function(e){
     e.preventDefault();
@@ -1193,7 +1279,12 @@ function renderAttend(){
   var seg = '<div class="seg" role="tablist">' +
     '<button data-seg="mine" aria-selected="' + (attendSeg === 'mine') + '">自分の参戦予定</button>' +
     '<button data-seg="friends" aria-selected="' + (attendSeg === 'friends') + '">フレンド</button></div>';
-  if (attendSeg === 'friends') { $('#view-attend').innerHTML = seg + friendsHTML(); bindFriendUI(); return; }
+  if (attendSeg === 'friends') {
+    $('#view-attend').innerHTML = seg + friendsHTML();
+    bindFriendUI();
+    maybeFirstFriendGuide();
+    return;
+  }
 
   var atts = (me ? me.atts : []).slice().sort(sortEv);
   var up = atts.filter(function(a){ return daysFrom(a.date) >= 0; });
@@ -1283,6 +1374,7 @@ function bindFriendUI(){
   $$('#view-attend [data-fdetail]').forEach(function(b){
     b.addEventListener('click', function(){ openFriendDetail(b.dataset.fdetail); });
   });
+
   var go = $('#goCloud');
   if (go) go.addEventListener('click', function(){ setView('set'); });
 }
@@ -1376,7 +1468,7 @@ function renderSet(){
   var about = '<div class="kv"><span>運営</span><b>非公式ファンサイト</b></div>' +
     '<div class="kv"><span>予定の出典</span><b>公式サイト・公式X</b></div>' +
     '<div class="note">日時・出演者は変わることがあります。チケット購入前は必ず公式で確認してください。</div>' +
-    '<div class="btns"><a class="btn" id="btnTutorial" href="tutorial.html" target="_blank" rel="noopener">あそびかたを見る</a>' +
+    '<div class="btns"><button class="btn" id="btnGuide">あそびかたを見る</button>' +
     '<a class="btn" href="' + KAWAI + '/live_information/schedule/list" target="_blank" rel="noopener">公式スケジュール</a></div>';
   html += accHTML('about', 'このアプリについて', 'あそびかた・出典', about, false);
 
@@ -1428,10 +1520,10 @@ function localAccountsTable(){
 function renderAccounts(list){
   var box = $('#accTable'); if (!box) return;
   if (!list || !list.length) { box.innerHTML = '<div class="empty"><p>まだ登録した人はいません。</p></div>'; return; }
-  box.innerHTML = '<div class="table-wrap"><table class="tbl"><thead><tr><th>ニックネーム</th><th>登録日</th><th>推し</th><th>参戦</th><th></th></tr></thead><tbody>' +
+  box.innerHTML = '<div class="table-wrap"><table class="tbl"><thead><tr><th>ニックネーム</th><th>登録日時</th><th>推し</th><th>参戦</th><th></th></tr></thead><tbody>' +
     list.map(function(p){
-      var d = new Date(p.created_at);
-      return '<tr><td><b>' + esc(p.nick) + '</b></td><td>' + (d.getMonth() + 1) + '/' + d.getDate() + '</td>' +
+      return '<tr><td><b>' + (p.avatar ? avtHTML(p.nick, p.avatar, 'sm') : '') + esc(p.nick) + '</b></td>' +
+        '<td class="nowrap">' + fmtDT(p.created_at) + '</td>' +
         '<td>' + (p.oshi_count || 0) + '人</td><td>' + (p.attend_count || 0) + '件</td>' +
         '<td><button class="btn danger tiny" data-delacc="' + esc(p.nick) + '">削除</button></td></tr>';
     }).join('') + '</tbody></table></div>';
@@ -1448,6 +1540,8 @@ function bindSet(){
     me = null; isAdmin = false; adminPass = ''; save(); syncChrome(); renderAll(); openGate();
   });
   $('#btnRefresh2').addEventListener('click', doRefresh);
+  var gb = $('#btnGuide');
+  if (gb) gb.addEventListener('click', function(){ openGuide(true); });
   $('#cSave').addEventListener('click', function(){
     var u = cloud.normUrl($('#cUrl').value), k = String($('#cKey').value || '').trim();
     if (!u || !k) { cloud.saveCfg('', ''); renderSet(); toast('接続を解除しました（この端末だけモード）'); return; }
@@ -1505,20 +1599,6 @@ function bindSet(){
       if (reload) reload.addEventListener('click', fetchAccounts);
       fetchAccounts();
     }
-    $$('#view-set [data-delacc]').forEach(function(b){
-      b.addEventListener('click', function(){
-        var nick = b.dataset.delacc;
-        if (!window.confirm(nick + ' さんのアカウントを削除しますか？\n参戦予定もすべて消えます。')) return;
-        if (cloud.on()) {
-          cloud.rpc('admin_delete', { p_pass:adminPass, p_nick:nick })
-            .then(function(){ toast('削除しました'); fetchAccounts(); })
-            .catch(function(e){ toast('削除できません：' + e.message); });
-        } else {
-          var u = readUsers(); delete u[nick]; writeUsers(u);
-          toast('削除しました'); renderSet();
-        }
-      });
-    });
   } else {
     $('#adminForm').addEventListener('submit', function(e){
       e.preventDefault();
@@ -1560,6 +1640,12 @@ function fetchAccounts(){
       '<br><span style="font-size:10.5px;color:var(--ink3)">詳細: ' + esc(String(e.message || '').slice(0,140)) + '</span>' +
       '<br>「supabase-fix.sql」を実行すると直る場合があります。</div>';
   });
+}
+function fmtDT(s){
+  var d = new Date(s);
+  if (isNaN(d.getTime())) return '—';
+  return d.getFullYear() + '/' + pad(d.getMonth() + 1) + '/' + pad(d.getDate()) +
+         ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 function fmtTime(ts){
   var d = new Date(ts);
@@ -1676,7 +1762,8 @@ function openDetail(id){
       '<div class="drow"><dt>日付</dt><dd>' + d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日（' + WEEK[d.getDay()] + '）</dd></div>' +
       '<div class="drow"><dt>時間</dt><dd>' + (ev.time ? esc(ev.time) + ' 開演' : '時間未定（公式でご確認ください）') +
         (ev.open ? ' / ' + esc(ev.open) + ' 開場' : '') + '</dd></div>' +
-      (ev.venue ? '<div class="drow"><dt>会場</dt><dd>' + esc(ev.venue) + '</dd></div>' : '') +
+      (ev.venue ? '<div class="drow"><dt>会場</dt><dd>' + mapLink(ev.venue) +
+        '<div class="dnote">タップするとGoogleマップで経路が開きます</div></dd></div>' : '') +
       (ev.note ? '<div class="drow"><dt>メモ</dt><dd>' + esc(ev.note) + '</dd></div>' : '') +
       '<div class="drow"><dt>グループ</dt><dd>' + gs.map(function(g){ return esc(g.name); }).join(' / ') + '</dd></div>' +
     '</div>' +
@@ -1743,13 +1830,90 @@ function openFriendDetail(nick){
   }
   html += '<div class="sec" style="margin:18px 0 8px"><h2 style="font-size:14px">参戦予定</h2><span class="count">' + board.length + '件</span></div>';
   html += board.length
-    ? '<div class="cards">' + board.map(function(b){
+    ? '<div class="cards" data-fnick="' + esc(nick) + '">' + board.map(function(b){
         return cardHTML({ id:'f_' + b.key, date:b.date, title:b.title, time:b.time, open:'', venue:b.venue,
           groups:b.groups || [], type:b.type || 'live' }, { days:false, star:false });
       }).join('') + '</div>'
+      + '<div class="note">予定をタップすると、時間・会場・経路まで詳しく見られます。</div>'
     : '<div class="note">これからの参戦予定はまだありません。</div>';
   $('#friendBody').innerHTML = html;
   openSheet('modalFriend');
+}
+
+/* ---------- フレンドの参戦予定の詳細 ---------- */
+function openFriendEventDetail(nick, key){
+  var b = null;
+  (friends.board || []).forEach(function(x){ if (x.nick === nick && ('f_' + x.key) === key) b = x; });
+  if (!b) return;
+  var d = parseD(b.date);
+  var ev = { id:key, date:b.date, title:b.title, time:b.time, open:'', venue:b.venue, groups:b.groups || [], type:b.type || 'live' };
+  var dl = daysLabel(ev);
+  var html = '<button class="btn tiny" id="fBack" style="margin-bottom:12px">← フレンドに戻る</button>' +
+    '<div class="card-top" style="padding-right:0">' + groupChips(b.groups, 7) +
+      '<span class="tchip ' + (b.type || 'live') + '">' + (TYPES[b.type] || '予定') + '</span>' +
+      '<span class="days ' + (dl.soon ? 'soon' : '') + '" style="position:static;margin-left:auto">' + dl.txt + '</span></div>' +
+    '<div class="dtit">' + esc(b.title) + '</div>' +
+    '<div class="fwho">' + avtHTML(nick, b._avatar || friendAvatar(nick)) + '<span><b>' + esc(nick) + '</b> さんの参戦予定</span></div>' +
+    '<div class="detail-rows">' +
+      '<div class="drow"><dt>日付</dt><dd>' + d.getFullYear() + '年' + (d.getMonth() + 1) + '月' + d.getDate() + '日（' + WEEK[d.getDay()] + '）</dd></div>' +
+      '<div class="drow"><dt>時間</dt><dd>' + (b.time ? esc(b.time) + ' 開演' : '時間未定（公式でご確認ください）') + '</dd></div>' +
+      (b.venue ? '<div class="drow"><dt>会場</dt><dd>' + mapLink(b.venue) +
+        '<div class="dnote">タップするとGoogleマップで経路が開きます</div></dd></div>' : '') +
+      '<div class="drow"><dt>グループ</dt><dd>' + (b.groups || []).map(function(k){ return GROUPS[k] ? esc(GROUPS[k].name) : ''; }).filter(Boolean).join(' / ') + '</dd></div>' +
+    '</div>' +
+    '<div class="btns"><button class="btn primary" data-att="' + esc(key) + '">' +
+      (isAttending(b.date + '|' + b.title) ? '★ 自分の参戦予定に入っています' : '☆ 自分も参戦予定に追加') + '</button></div>';
+  $('#friendBody').innerHTML = html;
+  var back = $('#fBack');
+  if (back) back.addEventListener('click', function(){ openFriendDetail(nick); });
+  var att = $('#friendBody [data-att]');
+  if (att) att.addEventListener('click', function(){
+    var t = { date:b.date, title:b.title, time:b.time, open:'', venue:b.venue, groups:b.groups || [], type:b.type || 'live' };
+    t.id = evKey(t);
+    toggleAttend(t);
+    openFriendEventDetail(nick, key);
+  });
+}
+function friendAvatar(nick){
+  var f = null;
+  (friends.list || []).forEach(function(x){ if (x.nick === nick) f = x; });
+  return f ? f.avatar : '';
+}
+
+/* ---------- 初めてのフレンド追加ガイド ---------- */
+const GUIDE_KEY = 'kawarabo.guide.friend';
+function guideSeen(){
+  try { return localStorage.getItem(GUIDE_KEY) === '1'; } catch(e){ return false; }
+}
+function markGuideSeen(){
+  try { localStorage.setItem(GUIDE_KEY, '1'); } catch(e){}
+}
+function guideHTML(){
+  return '<div class="guide">' +
+    '<div class="gstep"><span class="gn">1</span><div><b>「参戦予定」タブ →「フレンド」</b><p>この画面を開いています。ここがフレンドの入り口です。</p></div></div>' +
+    '<div class="gstep"><span class="gn">2</span><div><b>相手のニックネームを入れて「申請」</b><p>ニックネームは完全一致です。一字一句そろえてください。</p></div></div>' +
+    '<div class="gstep"><span class="gn">3</span><div><b>相手が「承認」するとフレンド成立</b><p>相手の画面に「届いている申請」が出ます。</p></div></div>' +
+    '<div class="gstep"><span class="gn">4</span><div><b>フレンド一覧にアイコンが並びます</b><p>推しの人数と参戦予定の件数が出ます。</p></div></div>' +
+    '<div class="gstep"><span class="gn">5</span><div><b>タップで推しと参戦予定を見る</b><p>予定をタップすると時間・会場・Googleマップの経路まで見られます。</p></div></div>' +
+    '<div class="notice" style="margin-top:14px"><b>先に知っておいてください</b><ul>' +
+      '<li>アイコンはフレンド一覧に表示されます。</li>' +
+      '<li>ニックネーム・パスワード・アイコンは、あとから変更できません。</li>' +
+      '<li>パスワードの再設定もできません。</li>' +
+    '</ul></div>' +
+    '<div class="note">あなたの推しと参戦予定が見えるのは、フレンドになった相手だけです。</div>';
+}
+function openGuide(force){
+  var box = $('#guideBody');
+  if (!box) return;
+  box.innerHTML = guideHTML();
+  markGuideSeen();
+  openSheet('modalGuide');
+}
+function maybeFirstFriendGuide(){
+  if (guideSeen()) return;
+  if (!cloud.on() || !me || !me.token || me.token === 'local') return;
+  if ((friends.list || []).length) return;
+  setTimeout(function(){ openGuide(true); }, 300);
 }
 
 /* =========================================================
@@ -1765,6 +1929,21 @@ function bind(){
   $('#fabRefresh').addEventListener('click', doRefresh);
 
   document.addEventListener('click', function(e){
+    var delacc = e.target.closest('[data-delacc]');
+    if (delacc) {
+      var dnick = delacc.dataset.delacc;
+      if (!window.confirm(dnick + ' さんのアカウントを削除しますか？\n参戦予定・フレンドもすべて消えます。')) return;
+      if (cloud.on()) {
+        cloud.rpc('admin_delete', { p_pass:adminPass, p_nick:dnick })
+          .then(function(){ toast('削除しました'); fetchAccounts(); })
+          .catch(function(err){ toast('削除できません：' + friendlyErr(err.message)); });
+      } else {
+        var uu = readUsers(); delete uu[dnick]; writeUsers(uu);
+        toast('削除しました'); renderSet();
+      }
+      return;
+    }
+
     var seg = e.target.closest('[data-seg]');
     if (seg) { attendSeg = seg.dataset.seg; renderAttend(); return; }
 
@@ -1806,6 +1985,12 @@ function bind(){
         save(); closeSheets(); renderAll(); toast('削除しました');
       }
       return;
+    }
+
+    var fcard = e.target.closest('#friendBody .card');
+    if (fcard && !e.target.closest('a')) {
+      var fwrap = fcard.closest('[data-fnick]');
+      if (fwrap) { openFriendEventDetail(fwrap.dataset.fnick, fcard.dataset.id); return; }
     }
 
     var card = e.target.closest('.card');
