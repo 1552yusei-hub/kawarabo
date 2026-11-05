@@ -2116,7 +2116,8 @@ function openSetup(){
     '<div class="setup-step"><div class="snum">1</div><div><div class="stit">ホーム画面に追加</div>' +
       '<p class="slead">アプリのように1タップで開けます。下の手順で追加してください。</p>' + home + '</div></div>' +
     '<div class="setup-step"><div class="snum">2</div><div><div class="stit">通知をオンにする</div>' +
-      '<p class="slead">推しの予定がある<b>前日の18:00</b>に、アプリを閉じていてもスマホへ通知が届きます。</p>' +
+      '<p class="slead">推しの予定がある<b>前日の ' + esc(notifTime()) + '</b> に、アプリを閉じていてもスマホへ通知が届きます。' +
+        '<br><span style="font-size:11px;color:var(--ink3)">時刻は 設定 →「通知」から1分単位で変えられます（初期値 21:00）</span></p>' +
       notifBit + '</div></div>' +
     '<div class="note">iPhoneの場合は、先に「ホーム画面に追加」を済ませてから通知をオンにしてください（Safariのタブのままでは通知できません）。</div>';
   openSheet('modalSetup');
