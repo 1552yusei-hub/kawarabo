@@ -386,6 +386,9 @@ const CONFIG = {
   adminId:   'kawarabo',        // 管理者番号
   adminPass: 'kawarabo2026',    // 管理者パスワード（初回ログイン後に変更できます）
   dataUrl:   'events.json',     // 自動更新で読みにいくファイル
+  /* クラウド接続の既定値。ここに入れておくと、全員が設定なしで使えます */
+  cloudUrl:  'https://ufyqbyzojwxeomisnsni.supabase.co',
+  cloudKey:  'sb_publishable_cdl6CZYB3zbuTrF3pLKZiA_fxy02_NS',
   siteName:  'カワラボ手帳'
 };
 
@@ -567,34 +570,58 @@ const SEED = RAW.map(function(r, i){
    ========================================================= */
 const cloud = {
   cfg: function(){
-    try { return JSON.parse(localStorage.getItem(STORE + '.cloud') || 'null'); } catch(e){ return null; }
+    var saved = null;
+    try { saved = JSON.parse(localStorage.getItem(STORE + '.cloud') || 'null'); } catch(e){ saved = null; }
+    if (saved && saved.url && saved.key) return saved;
+    var d = (typeof CONFIG !== 'undefined') ? CONFIG : {};
+    if (d.cloudUrl && d.cloudKey) return { url:this.normUrl(d.cloudUrl), key:d.cloudKey, builtin:true };
+    return null;
+  },
+  /* URLの末尾が /rest/v1 でも / でも、正しい形に直す */
+  normUrl: function(u){
+    var s = String(u || '').trim();
+    if (!s) return '';
+    s = s.replace(/\/+$/, '');
+    s = s.replace(/\/rest\/v1$/i, '');
+    s = s.replace(/\/+$/, '');
+    if (s && !/^https?:\/\//i.test(s)) s = 'https://' + s;
+    return s;
   },
   saveCfg: function(url, key){
-    var c = { url:String(url || '').trim().replace(/\/+$/, ''), key:String(key || '').trim() };
+    var c = { url:this.normUrl(url), key:String(key || '').trim() };
     if (!c.url || !c.key) localStorage.removeItem(STORE + '.cloud');
     else localStorage.setItem(STORE + '.cloud', JSON.stringify(c));
   },
+  isBuiltin: function(){ return !!(this.cfg() && this.cfg().builtin); },
   on: function(){
     var c = this.cfg();
     return !!(c && c.url && c.key);
   },
+  keyType: function(k){
+    k = String(k || '');
+    if (k.indexOf('sb_publishable_') === 0) return 'publishable';
+    if (k.indexOf('sb_secret_') === 0) return 'secret';
+    if (k.indexOf('eyJ') === 0) return 'legacy';
+    return 'unknown';
+  },
   rpc: function(fn, args){
     var c = this.cfg();
     if (!c) return Promise.reject(new Error('クラウド未接続'));
+    var t = this.keyType(c.key);
+    if (t === 'secret') {
+      return Promise.reject(new Error('秘密キー（sb_secret_）は使えません。publishable キーを入れてください'));
+    }
+    var headers = { 'Content-Type':'application/json', 'apikey':c.key };
+    /* 新しいキー（sb_publishable_）は JWT ではないので Authorization に載せると 401 になります */
+    if (t === 'legacy') headers['Authorization'] = 'Bearer ' + c.key;
     return fetch(c.url + '/rest/v1/rpc/' + fn, {
-      method:'POST',
-      headers:{
-        'Content-Type':'application/json',
-        'apikey':c.key,
-        'Authorization':'Bearer ' + c.key
-      },
-      body: JSON.stringify(args || {})
+      method:'POST', headers:headers, body: JSON.stringify(args || {})
     }).then(function(r){
-      return r.text().then(function(t){
+      return r.text().then(function(txt){
         var data = null;
-        try { data = t ? JSON.parse(t) : null; } catch(e){ data = t; }
+        try { data = txt ? JSON.parse(txt) : null; } catch(e){ data = txt; }
         if (!r.ok) {
-          var msg = (data && (data.message || data.hint || data.error)) || ('HTTP ' + r.status);
+          var msg = (data && (data.message || data.hint || data.details || data.error)) || ('HTTP ' + r.status);
           throw new Error(msg);
         }
         return data;
@@ -859,7 +886,7 @@ function renderGate(){
         else { toast(me.nick + 'さん、おかえりなさい'); maybeNotify(); }
       }).catch(function(e2){
         btn.disabled = false; btn.textContent = gateMode === 'signup' ? '作成してはじめる' : 'ログインする';
-        err.textContent = friendlyErr(e2.message);
+        err.innerHTML = esc(friendlyErr(e2.message)) + '<br><span style="font-size:10.5px;color:var(--ink3)">詳細: ' + esc(String(e2.message || '').slice(0, 160)) + '</span>';
       });
       return;
     }
@@ -884,9 +911,11 @@ function renderGate(){
 }
 function friendlyErr(m){
   m = String(m || '');
+  if (/digest\(text/i.test(m)) return 'サーバーのSQLに不具合があります。「supabase-fix.sql」を実行してください';
   if (/duplicate|unique/i.test(m)) return 'そのニックネームはすでに使われています';
-  if (/function .* does not exist|Could not find/i.test(m)) return 'サーバーの準備ができていません（SQLの実行が必要です）';
-  if (/password|pass/i.test(m)) return 'ニックネームかパスワードが違います';
+  if (/Could not find the function|function .* does not exist/i.test(m)) return 'サーバーの準備ができていません（SQLの実行が必要です）';
+  if (/JWT|Invalid API key|401/i.test(m)) return 'キーが違います。publishable キーをコピーし直してください';
+  if (/ニックネーム|パスワード/i.test(m)) return m;
   return m;
 }
 function persistMe(){
@@ -1189,7 +1218,7 @@ function renderSet(){
     '<div class="kv"><span>ニックネーム</span><b>' + (me ? esc(me.nick) : '未ログイン') + '</b></div>' +
     '<div class="kv"><span>推し</span><b>' + (me && me.oshi.length ? me.oshi.length + '人' : '未設定') + '</b></div>' +
     '<div class="kv"><span>参戦予定</span><b>' + (me ? me.atts.length : 0) + '件</b></div>' +
-    '<div class="kv"><span>接続モード</span><b>' + (cloud.on() ? 'クラウド（友達と共有）' : 'この端末だけ') + '</b></div>' +
+    '<div class="kv"><span>接続モード</span><b>' + (cloud.on() ? (cloud.isBuiltin() ? 'クラウド（自動接続）' : 'クラウド（手動設定）') : 'この端末だけ') + '</b></div>' +
     '<div class="btns"><button class="btn" id="btnOshi">推しを変更</button>' +
     '<button class="btn" id="btnLogout">ログアウト</button></div>' +
     '<div class="note">推しと参戦予定は、' + (cloud.on() ? 'クラウドに保存され、フレンドにだけ見えます。' : 'この端末の中だけに保存されます。') + '</div></div>';
@@ -1197,11 +1226,13 @@ function renderSet(){
   html += '<div class="panel"><h3>クラウド接続</h3>' +
     '<p class="lead">友達と参戦予定を見せ合うには接続が必要です。無料のSupabaseを使います。</p>' +
     '<div class="field"><label for="cUrl">Project URL</label><input id="cUrl" placeholder="https://xxxxx.supabase.co" value="' + (c ? esc(c.url) : '') + '"></div>' +
-    '<div class="field"><label for="cKey">anon public key</label><input id="cKey" placeholder="eyJhbGciOi..." value="' + (c ? esc(c.key) : '') + '"></div>' +
+    '<div class="field"><label for="cKey">publishable key（sb_publishable_… または eyJ…）</label><input id="cKey" placeholder="sb_publishable_..." value="' + (c ? esc(c.key) : '') + '"></div>' +
     '<div class="btns"><button class="btn primary" id="cSave">保存する</button>' +
     '<button class="btn" id="cTest">接続テスト</button>' +
     (cloud.on() ? '<button class="btn danger" id="cOff">接続を解除</button>' : '') + '</div>' +
-    '<div class="note" id="cMsg">' + (cloud.on() ? '接続中：' + esc(c.url) : '未接続。このままでも予定の閲覧・参戦予定の記録は使えます。') + '</div></div>';
+    '<div class="note" id="cMsg">' + (!cloud.on() ? '未接続。このままでも予定の閲覧・参戦予定の記録は使えます。'
+      : cloud.isBuiltin() ? 'このサイトは最初から接続されています。設定は不要です。'
+      : '接続済み：' + esc(c.url)) + '</div></div>';
 
   if (isAdmin) html += adminPanelHTML(); else html += adminFormHTML();
 
@@ -1238,7 +1269,12 @@ function adminPanelHTML(){
     html += localAccountsTable();
   } else {
     html += '<div id="accTable"><div class="note">読み込み中…</div></div>' +
-            '<div class="btns"><button class="btn" id="accReload">一覧を更新</button></div>';
+            '<div class="btns"><button class="btn" id="accReload">一覧を更新</button></div>' +
+            '<div class="note">クラウドに登録された全員が表示されます。別のブラウザで作ったアカウントもここに出ます。</div>';
+    var lok = localAccountsTable();
+    if (lok.indexOf('<table') === 0 || lok.indexOf('<div class="table-wrap"') === 0) {
+      html += '<div class="sec" style="margin-top:16px"><h2 style="font-size:14px">この端末だけのアカウント</h2></div>' + lok;
+    }
   }
   html += '<div class="btns"><button class="btn danger" id="btnAdminOut">管理者ログアウト</button></div></div>';
   return html;
@@ -1278,18 +1314,41 @@ function bindSet(){
   });
   $('#btnRefresh2').addEventListener('click', doRefresh);
   $('#cSave').addEventListener('click', function(){
-    cloud.saveCfg($('#cUrl').value, $('#cKey').value);
-    $('#cMsg').textContent = cloud.on() ? '保存しました。接続テストを押して確認してください。' : '解除しました（この端末だけモード）。';
-    renderSet();
+    var u = cloud.normUrl($('#cUrl').value), k = String($('#cKey').value || '').trim();
+    if (!u || !k) { cloud.saveCfg('', ''); renderSet(); toast('接続を解除しました（この端末だけモード）'); return; }
+    var t = cloud.keyType(k);
+    if (t === 'secret') { renderSet(); toast('秘密キー（sb_secret_）は使えません。publishable キーを入れてください'); return; }
+    if (t === 'unknown') { renderSet(); toast('キーの形式が違います。sb_publishable_ または eyJ で始まる文字を入れてください'); return; }
+    cloud.saveCfg(u, k);
+    var m = $('#cMsg');
+    if (m) m.textContent = '保存しました。接続を確認しています…';
+    cloud.rpc('ping', {}).then(function(){
+      renderSet();
+      var box = $('#cMsg');
+      if (box) box.textContent = '接続できました。アカウント作成／ログインできます。';
+      toast('接続できました');
+    }).catch(function(e){
+      renderSet();
+      var box = $('#cMsg');
+      if (box) box.textContent = '保存しましたが、接続を確認できません：' + friendlyErr(e.message);
+    });
   });
   $('#cTest').addEventListener('click', function(){
     cloud.saveCfg($('#cUrl').value, $('#cKey').value);
     var m = $('#cMsg');
-    m.textContent = 'テスト中…';
+    var c = cloud.cfg();
+    if (!c) { m.textContent = 'URLとキーを入れてください'; return; }
+    m.textContent = 'テスト中…（URL: ' + c.url + '）';
     cloud.rpc('ping', {}).then(function(r){
-      m.textContent = '接続できました。次はアカウントを作り直すか、ログインし直してください。';
+      m.textContent = '✓ 接続できました。このままアカウント作成／ログインできます。';
     }).catch(function(e){
-      m.textContent = 'つながりません：' + friendlyErr(e.message);
+      var msg = e.message || '';
+      var hint = '';
+      if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) hint = 'URLが違う可能性があります（Project URL は https://〇〇.supabase.co の形です）';
+      else if (/Invalid API key|JWT|401/i.test(msg)) hint = 'キーが違う可能性があります（publishable キーをコピーし直してください）';
+      else if (/does not exist|Could not find/i.test(msg)) hint = 'SQL（supabase.sql）がまだ実行されていない可能性があります';
+      else if (/permission denied/i.test(msg)) hint = 'テーブル権限の設定が必要です';
+      m.textContent = 'つながりません：' + friendlyErr(msg) + (hint ? ' ／ ' + hint : '');
     });
   });
   var off = $('#cOff');
@@ -1355,12 +1414,16 @@ function adminFormHTML(){
     '</form></div>';
 }
 function fetchAccounts(){
-  if (!cloud.on() || !isAdmin) return;
+  if (!isAdmin) return;
+  var b = $('#accTable');
+  if (!cloud.on()) { if (b) b.innerHTML = localAccountsTable(); return; }
+  if (b) b.innerHTML = '<div class="note">読み込み中…</div>';
   cloud.rpc('admin_list', { p_pass:adminPass }).then(function(list){
     renderAccounts(Array.isArray(list) ? list : []);
   }).catch(function(e){
-    var b = $('#accTable');
-    if (b) b.innerHTML = '<div class="note">一覧を読めませんでした：' + esc(friendlyErr(e.message)) + '</div>';
+    if (b) b.innerHTML = '<div class="note">一覧を読めませんでした：' + esc(friendlyErr(e.message)) +
+      '<br><span style="font-size:10.5px;color:var(--ink3)">詳細: ' + esc(String(e.message || '').slice(0,140)) + '</span>' +
+      '<br>「supabase-fix.sql」を実行すると直る場合があります。</div>';
   });
 }
 function fmtTime(ts){
