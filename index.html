@@ -370,6 +370,7 @@ html[data-theme="dark"] .vlink{color:var(--pink)}
 .gsteps{margin:0;padding-left:18px;font-size:12.5px;line-height:2;color:var(--ink2)}
 .gsteps b{color:var(--ink)}
 .okline{font-size:12px;color:#1F8A5B;background:color-mix(in srgb,#1F8A5B 10%,var(--card));border-radius:9px;padding:8px 11px}
+.selhour{padding:8px 10px;border-radius:9px;border:1px solid var(--line2);background:var(--card);color:var(--ink);font-family:inherit;font-size:13px;font-weight:700}
 </style>
 </head>
 <body>
@@ -492,12 +493,15 @@ html[data-theme="dark"] .vlink{color:var(--pink)}
    設定（ここだけ書き換えれば動きます）
    ========================================================= */
 const CONFIG = {
+  /* OneSignal の App ID（空のままなら、設定画面から貼り付けられます） */
+  oneSignalAppId: '',
   adminId:   'kawarabo',        // 管理者番号
   adminPass: 'kawarabo2026',    // 管理者パスワード（初回ログイン後に変更できます）
   dataUrl:   'events.json',     // 自動更新で読みにいくファイル
   /* クラウド接続の既定値。ここに入れておくと、全員が設定なしで使えます */
   cloudUrl:  'https://ufyqbyzojwxeomisnsni.supabase.co',
   cloudKey:  'sb_publishable_cdl6CZYB3zbuTrF3pLKZiA_fxy02_NS',
+  vapidPublic: 'BMR5gN7cp1q3CKllu5-SrToB2_MlnycTN4_vBXsUv0KTy8yHUopFIp7sULbzQkBW-qngKxDaHm-pCTT0emxzIyo',
   siteName:  'カワラボ手帳'
 };
 
@@ -1072,7 +1076,7 @@ function renderGate(){
         if (!p || !p.token) throw new Error('ログインできませんでした');
         me = { nick:p.nick || nick, token:p.token, oshi:p.oshi || [], atts:p.atts || [],
                avatar:p.avatar || (gateMode === 'signup' ? gateAvatar : '') };
-        save(); closeGate(); syncChrome(); renderAll();
+        save(); closeGate(); syncChrome(); renderAll(); resyncPush();
         if (!me.oshi.length) startOnboarding();
         else { toast(me.nick + 'さん、おかえりなさい'); maybeNotify(); }
       }).catch(function(e2){
@@ -1088,7 +1092,7 @@ function renderGate(){
       users[nick] = { hash:hash(pw), oshi:[], atts:[], avatar:gateAvatar };
       writeUsers(users);
       me = { nick:nick, token:'local', oshi:[], atts:[], avatar:gateAvatar };
-      save(); closeGate(); startOnboarding(); return;
+      save(); closeGate(); push.sync(); startOnboarding(); return;
     }
     var u = users[nick];
     if (!u || u.hash !== hash(pw)) {
@@ -1097,7 +1101,7 @@ function renderGate(){
       return;
     }
     me = { nick:nick, token:'local', oshi:u.oshi || [], atts:u.atts || [], avatar:u.avatar || '' };
-    save(); closeGate(); syncChrome(); renderAll(); toast(nick + 'さん、おかえりなさい');
+    save(); closeGate(); syncChrome(); renderAll(); resyncPush(); toast(nick + 'さん、おかえりなさい');
   });
 }
 function avtHTML(nick, av, extra){
@@ -1431,16 +1435,43 @@ function accHTML(key, title, sub, body, dflt){
 function notifOn(){
   try { return localStorage.getItem(STORE + '.notif') === '1'; } catch(e){ return false; }
 }
+function notifHour(){
+  var v = 21;
+  try { v = parseInt(localStorage.getItem(STORE + '.notifhour') || '21', 10); } catch(e){}
+  if (!(v >= 18 && v <= 24)) v = 21;
+  return v;
+}
+function setNotifHour(v){
+  v = parseInt(v, 10);
+  if (!(v >= 18 && v <= 24)) v = 21;
+  try { localStorage.setItem(STORE + '.notifhour', String(v)); } catch(e){}
+}
+function hourLabel(h){ return h === 24 ? '0:00（深夜）' : h + ':00'; }
 function notifPanelHTML(){
-  var perm = ('Notification' in window) ? Notification.permission : 'unsupported';
-  var on = notifOn() && perm === 'granted';
-  var sub = perm === 'granted' ? 'ブラウザの通知でお知らせします'
-          : perm === 'denied' ? 'ブラウザで通知がブロックされています'
-          : perm === 'unsupported' ? 'このブラウザは通知に対応していません'
-          : 'まだ許可されていません';
-  return '<div class="switch"><div><div class="lab">推しの予定を通知</div><div class="sub">' + sub + '</div></div>' +
-    '<button class="tgl" id="swNotif" aria-pressed="' + on + '" aria-label="通知"></button></div>' +
-    '<div class="note">今日・明日に推しの予定があるとき、ブラウザの通知でお知らせします（アプリを開いているあいだ）。</div>';
+  var perm = push.permission();
+  var hour = notifHour();
+  var opts = '';
+  for (var h = 18; h <= 24; h++) opts += '<option value="' + h + '"' + (h === hour ? ' selected' : '') + '>' + hourLabel(h) + '</option>';
+
+  var pushState;
+  if (!push.on()) pushState = '<div class="notice"><b>まだ準備中です</b><ul><li>無料のプッシュ通知サービス（OneSignal）の App ID を下に入れると、アプリを閉じていても届くようになります。</li></ul></div>';
+  else if (perm === 'granted') pushState = '<div class="okline">✓ アプリを閉じていても届きます</div>';
+  else if (perm === 'denied') pushState = '<div class="notice"><b>通知がブロックされています</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 から、このサイトを許可してください。</li></ul></div>';
+  else pushState = '<div class="btns" style="margin-top:0"><button class="btn primary" id="pushAllow">通知をオンにする</button></div>';
+
+  return '<div class="switch"><div><div class="lab">通知する時刻</div><div class="sub">前日に推しの予定があるとき、この時刻にお知らせします</div></div>' +
+    '<select id="notifHour" class="selhour">' + opts + '</select></div>' +
+    '<div class="switch"><div><div class="lab">この端末でも通知する</div><div class="sub">アプリを開いているあいだ、同じ時刻にブラウザ通知を出します</div></div>' +
+    '<button class="tgl" id="swNotif" aria-pressed="' + (notifOn() && perm === 'granted') + '" aria-label="通知"></button></div>' +
+    pushState +
+    '<div class="subh" style="margin-top:16px">アプリを閉じていても届く通知（無料）</div>' +
+    '<p class="lead" style="margin-bottom:10px">OneSignal の App ID を入れると有効になります。' +
+      (push.on() ? 'いま設定済み：<b>' + esc(push.appId().slice(0, 8)) + '…</b>' : 'まだ未設定です。') + '</p>' +
+    '<div class="field" style="margin-bottom:8px"><label for="osId">OneSignal App ID</label>' +
+      '<input id="osId" placeholder="例：1a2b3c4d-1234-5678-9abc-1234567890ab" value="' + (push.on() ? esc(push.appId()) : '') + '"></div>' +
+    '<div class="btns" style="margin-top:0"><button class="btn" id="osSave">保存</button>' +
+      (push.on() ? '<button class="btn" id="osSync">いま同期する</button>' : '') + '</div>' +
+    '<div class="note">設定方法は <a href="push-setup.html" target="_blank" rel="noopener">「プッシュ通知の設定」</a> にまとめてあります。通知はアプリを閉じていても届きます（iPhoneはホーム画面に追加が必要）。</div>';
 }
 function renderSet(){
   var dark = document.documentElement.getAttribute('data-theme') === 'dark';
@@ -1469,7 +1500,7 @@ function renderSet(){
   html += accHTML('disp', '表示', 'ダークモード', disp, false);
 
   /* 3. 通知 */
-  html += accHTML('notif', '通知', '推しの予定のお知らせ', notifPanelHTML(), false);
+  html += accHTML('notif', '通知', '時刻の設定・アプリを閉じていても届く通知', notifPanelHTML(), false);
 
   /* 4. データと接続 */
   var data = '<div class="kv"><span>最終更新</span><b>' + (lastRefresh ? fmtTime(lastRefresh) : '未取得') + '</b></div>' +
@@ -1583,15 +1614,39 @@ function bindSet(){
     me = null; isAdmin = false; adminPass = ''; save(); syncChrome(); renderAll(); openGate();
   });
   $('#btnRefresh2').addEventListener('click', doRefresh);
-  var sn = $('#swNotif');
-  if (sn) sn.addEventListener('click', function(){
-    if (notifOn()) { setNotif(false); renderSet(); return; }
-    if (!('Notification' in window)) { toast('このブラウザは通知に対応していません'); return; }
-    Notification.requestPermission().then(function(p){
-      if (p === 'granted') { setNotif(true); toast('通知をオンにしました'); }
-      else { setNotif(false); toast('ブラウザの設定で通知が許可されていません'); }
+  var nh = $('#notifHour');
+  if (nh) nh.addEventListener('change', function(){
+    setNotifHour(this.value);
+    toast('通知する時刻を ' + hourLabel(notifHour()) + ' にしました');
+    if (push.on()) push.sync();
+    maybeNotify();
+  });
+  var osSave = $('#osSave');
+  if (osSave) osSave.addEventListener('click', function(){
+    var id = $('#osId').value.trim();
+    if (id && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      toast('App ID の形式が違うようです（ハイフン区切りの36文字）'); return;
+    }
+    push.saveAppId(id);
+    push.init(); push.sync();
+    renderSet(); toast(id ? '保存しました。通知をオンにしてください' : '解除しました');
+  });
+  var osSync = $('#osSync');
+  if (osSync) osSync.addEventListener('click', function(){ push.sync(); toast('同期しました'); });
+  var pa = $('#pushAllow');
+  if (pa) pa.addEventListener('click', function(){
+    push.ask(function(r){
+      if (r === 'granted') { setNotif(true); toast('通知をオンにしました'); }
+      else if (r === 'noapp') toast('先に OneSignal App ID を入れてください');
+      else toast('通知が許可されませんでした');
       renderSet();
     });
+  });
+
+  var sn = $('#swNotif');
+  if (sn) sn.addEventListener('click', function(){
+    if (pushOn()) disablePush().then(renderSet);
+    else enablePush().then(renderSet);
   });
   var gb = $('#btnGuide');
   if (gb) gb.addEventListener('click', function(){ openGuide(true); });
@@ -1863,30 +1918,29 @@ function fireNotify(title, body, tag){
 function evLine(e){
   return (e.time ? e.time + ' 開演' : '時間未定') + (e.venue ? ' / ' + e.venue : '');
 }
-/* 推しの予定を、前日18:00と当日8:00に知らせる */
+/* 推しの予定を、前日の設定時刻と当日8:00に知らせる（アプリを開いているとき用） */
 function maybeNotify(){
   if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  if (!notifOn() && !notifFlag('notif.once')) return;
+  if (!notifOn()) return;
   if (!me || !me.oshi.length) return;
   var now = new Date();
   var h = now.getHours();
   var todayKey = ymd(now);
+  var nHour = notifHour();
 
-  /* 前日 18:00 以降：明日の推しの予定 */
-  if (h >= 18) {
+  if (h >= nHour && nHour <= 23 || (nHour === 24 && h >= 0 && h < 6)) {
     var tk = 'n.prev.' + todayKey;
     if (!notifFlag(tk)) {
       var tm = events.filter(function(e){ return daysFrom(e.date) === 1 && isOshiEvent(e); }).sort(sortEv);
       if (tm.length) {
         var e0 = tm[0];
         fireNotify('明日、推しの予定があります',
-          (tm.length > 1 ? '' : e0.title + '\n') + evLine(e0) + (tm.length > 1 ? '\nほか' + (tm.length - 1) + '件' : ''),
+          e0.title + '\n' + evLine(e0) + (tm.length > 1 ? '\nほか' + (tm.length - 1) + '件' : ''),
           'kawarabo-prev');
         setNotifFlag(tk, true);
       }
     }
   }
-  /* 当日 8:00 以降：今日の推しの予定 */
   if (h >= 8) {
     var dk = 'n.day.' + todayKey;
     if (!notifFlag(dk)) {
@@ -1913,7 +1967,7 @@ function openSetup(){
     ? '<ol class="gsteps"><li>Safariでこのページを開く</li><li>画面下の<b>共有ボタン</b>（四角に↑）をタップ</li><li>メニューを下にスクロールして<b>「ホーム画面に追加」</b>をタップ</li><li>右上の<b>「追加」</b>をタップ</li></ol>'
     : '<ol class="gsteps"><li>Chromeでこのページを開く</li><li>右上の<b>「⋮」</b>をタップ</li><li><b>「ホーム画面に追加」</b>（または「アプリをインストール」）をタップ</li><li><b>「追加」</b>をタップ</li></ol>';
   var perm = ('Notification' in window) ? Notification.permission : 'unsupported';
-  var notifBit = perm === 'granted'
+  var notifBit = pushOn()
     ? '<div class="okline">✓ 通知はオンになっています</div>'
     : perm === 'denied'
       ? '<div class="notice"><b>通知がブロックされています</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 から、このサイトを許可してください。</li></ul></div>'
@@ -1923,17 +1977,13 @@ function openSetup(){
     '<div class="setup-step"><div class="snum">1</div><div><div class="stit">ホーム画面に追加</div>' +
       '<p class="slead">アプリのように1タップで開けます。下の手順で追加してください。</p>' + home + '</div></div>' +
     '<div class="setup-step"><div class="snum">2</div><div><div class="stit">通知をオンにする</div>' +
-      '<p class="slead">推しの予定がある前日の<b>18:00</b>と、当日の<b>8:00</b>にお知らせします。</p>' +
+      '<p class="slead">推しの予定がある<b>前日の18:00</b>に、アプリを閉じていてもスマホへ通知が届きます。</p>' +
       notifBit + '</div></div>' +
-    '<div class="note">通知はアプリを開いていないと届きません。ホーム画面に追加しておくと開きやすくなります。</div>';
+    '<div class="note">iPhoneの場合は、先に「ホーム画面に追加」を済ませてから通知をオンにしてください（Safariのタブのままでは通知できません）。</div>';
   openSheet('modalSetup');
   var nb = $('#setupNotif');
   if (nb) nb.addEventListener('click', function(){
-    Notification.requestPermission().then(function(p){
-      if (p === 'granted') { setNotif(true); toast('通知をオンにしました'); }
-      else toast('通知が許可されませんでした');
-      openSetup();
-    });
+    enablePush().then(function(){ openSetup(); });
   });
   markSetup();
 }
@@ -2041,6 +2091,89 @@ function maybeFirstFriendGuide(){
   if ((friends.list || []).length) return;
   setTimeout(function(){ openGuide(true); }, 300);
 }
+
+/* =========================================================
+   プッシュ通知（OneSignal / 無料）
+   アプリを閉じていても届きます。
+   App ID は 設定 →「通知」から貼り付けるか、CONFIG.oneSignalAppId に直接書きます。
+   ========================================================= */
+const push = {
+  appId: function(){
+    var saved = '';
+    try { saved = localStorage.getItem(STORE + '.osid') || ''; } catch(e){}
+    if (saved) return saved.trim();
+    return (typeof CONFIG !== 'undefined' && CONFIG.oneSignalAppId) ? String(CONFIG.oneSignalAppId).trim() : '';
+  },
+  saveAppId: function(id){
+    id = String(id || '').trim();
+    try { id ? localStorage.setItem(STORE + '.osid', id) : localStorage.removeItem(STORE + '.osid'); } catch(e){}
+  },
+  on: function(){ return !!this.appId(); },
+  ready: function(){ return !!this._ready; },
+  _ready: false,
+  _queue: function(fn){ window.OneSignalDeferred = window.OneSignalDeferred || []; window.OneSignalDeferred.push(fn); },
+  init: function(){
+    if (!this.on() || this._loaded) return;
+    this._loaded = true;
+    var appId = this.appId();
+    var s = document.createElement('script');
+    s.src = 'https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js';
+    s.defer = true;
+    document.head.appendChild(s);
+    this._queue(function(OneSignal){
+      OneSignal.init({
+        appId: appId,
+        serviceWorkerPath: 'OneSignalSDKWorker.js',
+        serviceWorkerParam: { scope: '/' },
+        notifyButton: { enable: false },
+        allowLocalhostAsSecureOrigin: false,
+        promptOptions: { slidedown: { prompts: [{ type: 'push', autoPrompt: false }] } }
+      }).then(function(){
+        push._ready = true;
+        push.sync();
+      }).catch(function(){});
+    });
+  },
+  _loaded: false,
+  /* ログイン中のニックネームで識別＋タグ同期 */
+  sync: function(){
+    if (!this.on()) return;
+    this.init();
+    if (!me) return;
+    var hour = String(notifHour());
+    var tags = { notif_hour: hour, push_on: notifOn() ? '1' : '0' };
+    GKEYS.forEach(function(k){
+      tags['g_' + k] = oshiGroups().has(k) ? '1' : '0';
+    });
+    var nick = me.nick;
+    this._queue(function(OneSignal){
+      try {
+        if (nick) OneSignal.login(String(nick));
+        OneSignal.User.addTags(tags);
+      } catch(e){}
+    });
+  },
+  permission: function(){
+    return ('Notification' in window) ? Notification.permission : 'unsupported';
+  },
+  ask: function(cb){
+    if (!this.on()) { cb && cb('noapp'); return; }
+    this.init();
+    this._queue(function(OneSignal){
+      OneSignal.Notifications.requestPermission().then(function(ok){
+        if (ok) { push.sync(); }
+        cb && cb(ok ? 'granted' : 'denied');
+      }).catch(function(){ cb && cb('error'); });
+    });
+  },
+  subscribed: function(cb){
+    if (!this.on() || !this._ready) { cb(false); return; }
+    this._queue(function(OneSignal){
+      try { cb(!!(OneSignal.User && OneSignal.User.PushSubscription && OneSignal.User.PushSubscription.optedIn)); }
+      catch(e){ cb(false); }
+    });
+  }
+};
 
 /* =========================================================
    起動とイベント
