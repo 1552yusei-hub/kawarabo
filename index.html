@@ -1506,7 +1506,8 @@ function notifPanelHTML(){
   if (!push.on()) pushState = '<div class="notice"><b>まだ準備中です</b><ul><li>管理者が設定すると、アプリを閉じていても届くようになります。</li></ul></div>';
   else if (perm === 'granted') pushState = '<div class="okline">✓ アプリを閉じていても届きます</div>';
   else if (perm === 'denied') pushState = '<div class="notice"><b>通知がブロックされています</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 から、このサイトを許可してください。</li></ul></div>';
-  else pushState = '<div class="btns" style="margin-top:0"><button class="btn primary" id="pushAllow">通知をオンにする</button></div>';
+  else pushState = '<div class="notice"><b>ブラウザの許可がまだです</b><ul><li>下のスイッチをオンにすると、ブラウザに確認が出ます。「許可」を選んでください。</li></ul></div>' +
+    '<div class="btns" style="margin-top:0"><button class="btn primary" id="pushAllow">ブラウザの許可を出す</button></div>';
 
   var idBox = '';
   if (isAdmin) {
@@ -1538,7 +1539,7 @@ function notifPanelHTML(){
     '<div class="note" style="margin-top:8px">1分単位で指定できます（例：21:07）。上のボタンはよく使う時刻のショートカットです。' +
       '<br>深夜0時台に受け取りたい場合は 00:xx を選ぶと「当日の予定」として届きます。</div>' +
     '<div class="switch"><div><div class="lab">この端末でも通知する</div><div class="sub">アプリを開いているあいだ、同じ時刻にブラウザ通知を出します</div></div>' +
-    '<button class="tgl" id="swNotif" aria-pressed="' + (notifOn() && perm === 'granted') + '" aria-label="通知"></button></div>' +
+    '<button class="tgl" id="swNotif" aria-pressed="' + notifOn() + '" aria-label="通知のオン・オフ"></button></div>' +
     pushState + idBox;
 }
 function renderSet(){
@@ -1755,8 +1756,9 @@ function bindSet(){
 
   var sn = $('#swNotif');
   if (sn) sn.addEventListener('click', function(){
-    if (pushOn()) disablePush().then(renderSet);
-    else enablePush().then(renderSet);
+    var turningOff = notifOn();
+    var p = turningOff ? disablePush() : enablePush();
+    p.then(function(){ renderSet(); });
   });
   var gb = $('#btnGuide');
   if (gb) gb.addEventListener('click', function(){ openGuide(true); });
