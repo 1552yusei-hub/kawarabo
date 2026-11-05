@@ -323,7 +323,8 @@ main{padding-bottom:110px}
 .avpick[aria-pressed="true"]{border-color:var(--pink);background:var(--pink-soft);box-shadow:0 0 0 2px color-mix(in srgb,var(--pink) 28%,transparent)}
 @media (max-width:420px){.avpick-grid{grid-template-columns:repeat(6,1fr)}}
 .notice{background:var(--pink-soft);border:1px solid color-mix(in srgb,var(--pink) 30%,var(--line));border-radius:12px;padding:11px 13px;margin:4px 0 6px}
-.notice b{font-size:11.5px;color:var(--pink-ink);display:block;margin-bottom:5px}
+.notice>b{font-size:11.5px;color:var(--pink-ink);display:block;margin-bottom:5px}
+.notice li b{color:var(--pink-ink)}
 .notice ul{margin:0;padding-left:16px;font-size:11px;color:var(--ink2);line-height:1.75}
 .notice li{margin-bottom:2px}
 /* --- フレンド一覧 --- */
@@ -360,6 +361,15 @@ html[data-theme="dark"] .vlink{color:var(--pink)}
 .gstep .gn{width:26px;height:26px;border-radius:50%;background:var(--pink);color:#fff;display:grid;place-items:center;font-size:11.5px;font-weight:700}
 .gstep b{display:block;font-size:13px;margin-bottom:2px}
 .gstep p{font-size:11.5px;color:var(--ink2);line-height:1.7}
+
+/* --- セットアップ案内 --- */
+.setup-step{display:grid;grid-template-columns:30px 1fr;gap:12px;margin-bottom:18px}
+.setup-step .snum{width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--paper);display:grid;place-items:center;font-family:var(--f-display);font-weight:900;font-size:13px}
+.setup-step .stit{font-family:var(--f-display);font-weight:900;font-size:14.5px;margin-bottom:3px}
+.setup-step .slead{font-size:12px;color:var(--ink2);line-height:1.75;margin-bottom:8px}
+.gsteps{margin:0;padding-left:18px;font-size:12.5px;line-height:2;color:var(--ink2)}
+.gsteps b{color:var(--ink)}
+.okline{font-size:12px;color:#1F8A5B;background:color-mix(in srgb,#1F8A5B 10%,var(--card));border-radius:9px;padding:8px 11px}
 </style>
 </head>
 <body>
@@ -461,6 +471,16 @@ html[data-theme="dark"] .vlink{color:var(--pink)}
     </div>
     <div class="detail-body" id="guideBody"></div>
     <div class="btns"><button class="btn primary" data-close style="width:100%;justify-content:center">わかった</button></div>
+  </div>
+</div>
+
+<div class="modal" id="modalSetup" aria-hidden="true">
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-head"><h3>はじめの設定</h3>
+      <button class="icon-btn" data-close aria-label="閉じる"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <div class="detail-body" id="setupBody"></div>
+    <div class="btns"><button class="btn" data-close style="width:100%;justify-content:center">あとで</button></div>
   </div>
 </div>
 
@@ -988,9 +1008,9 @@ function renderGate(){
         (login ? '' : '<div class="field"><label for="gPass2">パスワード（確認）</label>' +
           '<input id="gPass2" type="password" required minlength="4" placeholder="••••••"></div>') +
         (login ? '' : '<div class="notice"><b>作成前に確認してください</b>' +
-          '<ul><li>ニックネーム・パスワード・アイコンは<b>あとから変更できません</b>。</li>' +
+          '<ul><li>ニックネームとパスワードは<b>あとから変更できません</b>。</li>' +
           '<li>パスワードの<b>再設定もできません</b>。忘れると入れなくなります。</li>' +
-          '<li>選んだアイコンは<b>フレンド一覧に表示されます</b>。</li></ul></div>') +
+          '<li>選んだアイコンは<b>フレンド一覧に表示されます</b>。アイコンだけは、あとから設定で変更できます。</li></ul></div>') +
         '<div class="err" id="gErr"></div>' +
         '<div class="btns" style="margin-top:6px">' +
           '<button class="btn primary" type="submit" id="gSubmit" style="width:100%;justify-content:center">' +
@@ -1082,7 +1102,9 @@ function renderGate(){
 }
 function avtHTML(nick, av, extra){
   var t = String(av || '').trim();
-  if (t) return '<span class="avt ' + (extra || '') + '">' + esc(t) + '</span>';
+  var cls = 'avt ' + (extra || '');
+  if (/^data:image\//.test(t)) return '<span class="' + cls + ' has-photo"><img src="' + t + '" alt=""></span>';
+  if (t && t.length <= 4) return '<span class="' + cls + '">' + esc(t) + '</span>';
   return '<span class="avt letter ' + (extra || '') + '">' + esc(String(nick || '?').slice(0, 1)) + '</span>';
 }
 function friendlyErr(m){
@@ -1153,25 +1175,24 @@ function renderOshiPicker(first){
   paint('');
   $('#obSearch').addEventListener('input', function(){ paint(this.value); });
 
-  $('#gate').addEventListener('click', function(e){
+  $('#gate').onclick = function(e){
     var b = e.target.closest('[data-ob]');
     if (!b) return;
     var id = b.dataset.ob;
     if (obPicked.has(id)) obPicked.delete(id); else obPicked.add(id);
-    b.setAttribute('aria-pressed', obPicked.has(id));
+    b.setAttribute('aria-pressed', String(obPicked.has(id)));
     var btn = $('#obSave');
     if (btn) btn.textContent = obPicked.size ? obPicked.size + '人を推しに設定' : 'あとで決める';
-  });
+  };
   $('#obSave').addEventListener('click', function(){
     if (!me) me = { nick:'ゲスト', token:'local', oshi:[], atts:[] };
+    var wasFirst = !setupDone();
     me.oshi = Array.from(obPicked);
     persistMe();
     closeGate();
     syncChrome(); renderAll();
-    if (me.oshi.length && 'Notification' in window && Notification.permission === 'default') {
-      try { Notification.requestPermission(); } catch(e){}
-    }
     toast(me.oshi.length ? me.oshi.length + '人を推しに設定しました' : '推しはあとから設定できます');
+    if (wasFirst) setTimeout(function(){ openSetup(); }, 420);
   });
 }
 
@@ -1434,9 +1455,12 @@ function renderSet(){
     '</span></div></div>' +
     '<div class="kv"><span>接続モード</span><b>' + (cloud.on() ? (cloud.isBuiltin() ? 'クラウド（自動接続）' : 'クラウド（手動設定）') : 'この端末だけ') + '</b></div>' +
     '<div class="kv"><span>アイコン</span><b>' + (me && me.avatar ? esc(me.avatar) : '未設定') + '</b></div>' +
-    '<div class="btns"><button class="btn" id="btnOshi">推しを変更</button>' +
+    '<div class="btns"><button class="btn" id="btnAvatar">アイコンを変更</button>' +
+    '<button class="btn" id="btnOshi">推しを変更</button>' +
     '<button class="btn" id="btnLogout">ログアウト</button></div>' +
-    '<div class="note">ニックネーム・アイコン・パスワードは、あとから変更できません。パスワードの再設定もできません。</div>';
+    '<input type="file" id="avFile" accept="image/*" hidden>' +
+    '<div class="note">アイコンは、あとから何度でも変更できます。<br>' +
+      'ニックネームとパスワードは変更できません。パスワードの再設定もできません。</div>';
   html += accHTML('acct', 'アカウント', 'プロフィール・推し・ログアウト', acct, true);
 
   /* 2. 表示 */
@@ -1535,11 +1559,40 @@ function bindSet(){
     renderSet();
   });
   $('#btnOshi').addEventListener('click', startOnboarding);
+  var avBtn = $('#btnAvatar'), avIn = $('#avFile');
+  if (avBtn && avIn) {
+    avBtn.addEventListener('click', function(){ avIn.click(); });
+    avIn.addEventListener('change', function(){
+      var f = this.files && this.files[0];
+      readImageFile(f, function(data){
+        if (!data) return;
+        me.avatar = data; save();
+        if (cloud.on() && me.token && me.token !== 'local') {
+          cloud.rpc('set_avatar', { p_token:me.token, p_avatar:data }).catch(function(e){
+            toast('保存できませんでした：' + friendlyErr(e.message));
+          });
+        } else {
+          var us = readUsers(); if (us[me.nick]) { us[me.nick].avatar = data; writeUsers(us); }
+        }
+        renderSet(); toast('アイコンを変更しました');
+      });
+    });
+  }
   $('#btnLogout').addEventListener('click', function(){
     if (!window.confirm('ログアウトしますか？ 端末に残っているデータは消えません。')) return;
     me = null; isAdmin = false; adminPass = ''; save(); syncChrome(); renderAll(); openGate();
   });
   $('#btnRefresh2').addEventListener('click', doRefresh);
+  var sn = $('#swNotif');
+  if (sn) sn.addEventListener('click', function(){
+    if (notifOn()) { setNotif(false); renderSet(); return; }
+    if (!('Notification' in window)) { toast('このブラウザは通知に対応していません'); return; }
+    Notification.requestPermission().then(function(p){
+      if (p === 'granted') { setNotif(true); toast('通知をオンにしました'); }
+      else { setNotif(false); toast('ブラウザの設定で通知が許可されていません'); }
+      renderSet();
+    });
+  });
   var gb = $('#btnGuide');
   if (gb) gb.addEventListener('click', function(){ openGuide(true); });
   $('#cSave').addEventListener('click', function(){
@@ -1799,17 +1852,90 @@ function openForm(ev){
   renderPicked();
   openSheet('modalEvent');
 }
+function notifFlag(k){ try { return localStorage.getItem(STORE + '.' + k) === '1'; } catch(e){ return false; } }
+function setNotifFlag(k, on){ try { on ? localStorage.setItem(STORE + '.' + k, '1') : localStorage.removeItem(STORE + '.' + k); } catch(e){} }
+function setNotif(on){
+  try { on ? localStorage.setItem(STORE + '.notif', '1') : localStorage.removeItem(STORE + '.notif'); } catch(e){}
+}
+function fireNotify(title, body, tag){
+  try { new Notification(title, { body:body, tag:tag, icon:'', badge:'' }); return true; } catch(e){ return false; }
+}
+function evLine(e){
+  return (e.time ? e.time + ' 開演' : '時間未定') + (e.venue ? ' / ' + e.venue : '');
+}
+/* 推しの予定を、前日18:00と当日8:00に知らせる */
 function maybeNotify(){
-  if (!me || !me.oshi.length || !('Notification' in window) || Notification.permission !== 'granted') return;
-  var hit = events.filter(function(e){ var n = daysFrom(e.date); return n >= 0 && n <= 1 && isOshiEvent(e); });
-  if (!hit.length) return;
-  var e0 = hit[0];
-  try {
-    new Notification('推しの予定：' + e0.title, {
-      body:(daysFrom(e0.date) === 0 ? '今日' : '明日') + (e0.time ? ' ' + e0.time : '') + (e0.venue ? ' / ' + e0.venue : ''),
-      tag:'kawarabo-oshi'
+  if (!('Notification' in window) || Notification.permission !== 'granted') return;
+  if (!notifOn() && !notifFlag('notif.once')) return;
+  if (!me || !me.oshi.length) return;
+  var now = new Date();
+  var h = now.getHours();
+  var todayKey = ymd(now);
+
+  /* 前日 18:00 以降：明日の推しの予定 */
+  if (h >= 18) {
+    var tk = 'n.prev.' + todayKey;
+    if (!notifFlag(tk)) {
+      var tm = events.filter(function(e){ return daysFrom(e.date) === 1 && isOshiEvent(e); }).sort(sortEv);
+      if (tm.length) {
+        var e0 = tm[0];
+        fireNotify('明日、推しの予定があります',
+          (tm.length > 1 ? '' : e0.title + '\n') + evLine(e0) + (tm.length > 1 ? '\nほか' + (tm.length - 1) + '件' : ''),
+          'kawarabo-prev');
+        setNotifFlag(tk, true);
+      }
+    }
+  }
+  /* 当日 8:00 以降：今日の推しの予定 */
+  if (h >= 8) {
+    var dk = 'n.day.' + todayKey;
+    if (!notifFlag(dk)) {
+      var td = events.filter(function(e){ return daysFrom(e.date) === 0 && isOshiEvent(e); }).sort(sortEv);
+      if (td.length) {
+        var e1 = td[0];
+        fireNotify('今日は推しの予定があります',
+          e1.title + '\n' + evLine(e1) + (td.length > 1 ? '\nほか' + (td.length - 1) + '件' : ''),
+          'kawarabo-today');
+        setNotifFlag(dk, true);
+      }
+    }
+  }
+}
+
+/* ---------- 初回セットアップ案内（ホーム画面追加 → 通知） ---------- */
+const SETUP_KEY = 'kawarabo.setup.done';
+function setupDone(){ try { return localStorage.getItem(SETUP_KEY) === '1'; } catch(e){ return false; } }
+function markSetup(){ try { localStorage.setItem(SETUP_KEY, '1'); } catch(e){} }
+function isIOS(){ return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+function openSetup(){
+  var ios = isIOS();
+  var home = ios
+    ? '<ol class="gsteps"><li>Safariでこのページを開く</li><li>画面下の<b>共有ボタン</b>（四角に↑）をタップ</li><li>メニューを下にスクロールして<b>「ホーム画面に追加」</b>をタップ</li><li>右上の<b>「追加」</b>をタップ</li></ol>'
+    : '<ol class="gsteps"><li>Chromeでこのページを開く</li><li>右上の<b>「⋮」</b>をタップ</li><li><b>「ホーム画面に追加」</b>（または「アプリをインストール」）をタップ</li><li><b>「追加」</b>をタップ</li></ol>';
+  var perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  var notifBit = perm === 'granted'
+    ? '<div class="okline">✓ 通知はオンになっています</div>'
+    : perm === 'denied'
+      ? '<div class="notice"><b>通知がブロックされています</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 から、このサイトを許可してください。</li></ul></div>'
+      : '<div class="btns"><button class="btn primary" id="setupNotif">通知をオンにする</button></div>';
+  $('#setupBody').innerHTML =
+    '<p class="lead" style="margin-bottom:14px">あと2つだけ設定すると、もっと便利になります。</p>' +
+    '<div class="setup-step"><div class="snum">1</div><div><div class="stit">ホーム画面に追加</div>' +
+      '<p class="slead">アプリのように1タップで開けます。下の手順で追加してください。</p>' + home + '</div></div>' +
+    '<div class="setup-step"><div class="snum">2</div><div><div class="stit">通知をオンにする</div>' +
+      '<p class="slead">推しの予定がある前日の<b>18:00</b>と、当日の<b>8:00</b>にお知らせします。</p>' +
+      notifBit + '</div></div>' +
+    '<div class="note">通知はアプリを開いていないと届きません。ホーム画面に追加しておくと開きやすくなります。</div>';
+  openSheet('modalSetup');
+  var nb = $('#setupNotif');
+  if (nb) nb.addEventListener('click', function(){
+    Notification.requestPermission().then(function(p){
+      if (p === 'granted') { setNotif(true); toast('通知をオンにしました'); }
+      else toast('通知が許可されませんでした');
+      openSetup();
     });
-  } catch(e){}
+  });
+  markSetup();
 }
 function openFriendDetail(nick){
   var f = null;
@@ -2061,6 +2187,7 @@ if (!me) {
   syncChrome();
   if (cloud.on() && me.token && me.token !== 'local') loadFriends();
   maybeNotify();
+  setInterval(maybeNotify, 60 * 1000);
   var stale = !lastRefresh || (Date.now() - lastRefresh) > 6 * 3600 * 1000;
   if (stale) setTimeout(doRefresh, 800);
 }
