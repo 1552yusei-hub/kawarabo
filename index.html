@@ -1469,25 +1469,42 @@ function setRestKeySet(on){
 function pushOn(){ return notifOn() && push.permission() === 'granted'; }
 function enablePush(){
   return new Promise(function(res){
-    if (!('Notification' in window)) { toast('このブラウザは通知に対応していません'); res(false); return; }
+    var finish = function(ok){
+      setNotif(ok);
+      if (ok && push.optIn) push.optIn();
+      if (push.on()) push.sync();
+      toast(ok ? '通知をオンにしました' : '通知が許可されませんでした');
+      res(ok);
+    };
+    if (!('Notification' in window)) { toast('このブラウザは通知に対応していません'); setNotif(true); res(true); return; }
+    if (Notification.permission === 'granted') { finish(true); return; }
+    if (Notification.permission === 'denied') {
+      toast('ブラウザで通知がブロックされています。設定から許可してください');
+      setNotif(false); res(false); return;
+    }
+    /* OneSignal が使えるならそのSDK経由で許可を取る */
     if (push.on()) {
+      var done = false;
+      var fallback = function(){
+        if (done) return; done = true;
+        Notification.requestPermission().then(function(p){ finish(p === 'granted'); }).catch(function(){ finish(false); });
+      };
+      /* OneSignal が応答しない場合に備えて2.5秒で標準APIに切り替える */
+      var tid = setTimeout(fallback, 2500);
       push.ask(function(r){
-        var ok = (r === 'granted');
-        setNotif(ok); push.sync();
-        if (ok) { if (push.optIn) push.optIn(); toast('通知をオンにしました'); }
-        else toast('通知が許可されませんでした');
-        res(ok);
+        clearTimeout(tid);
+        if (done) return;
+        if (r === 'granted') { done = true; finish(true); }
+        else if (r === 'denied') { done = true; finish(false); }
+        else { fallback(); }
       });
       return;
     }
-    Notification.requestPermission().then(function(p){
-      var ok = (p === 'granted');
-      setNotif(ok); push.sync();
-      toast(ok ? '通知をオンにしました' : '通知が許可されませんでした');
-      res(ok);
-    });
+    Notification.requestPermission().then(function(p){ finish(p === 'granted'); })
+      .catch(function(){ finish(false); });
   });
 }
+
 function disablePush(){
   return new Promise(function(res){
     setNotif(false);
@@ -1502,12 +1519,14 @@ function notifPanelHTML(){
   var perm = push.permission();
   var tm = notifTime();
 
+  var on = notifOn();
   var pushState;
   if (!push.on()) pushState = '<div class="notice"><b>まだ準備中です</b><ul><li>管理者が設定すると、アプリを閉じていても届くようになります。</li></ul></div>';
-  else if (perm === 'granted') pushState = '<div class="okline">✓ アプリを閉じていても届きます</div>';
-  else if (perm === 'denied') pushState = '<div class="notice"><b>通知がブロックされています</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 から、このサイトを許可してください。</li></ul></div>';
-  else pushState = '<div class="notice"><b>ブラウザの許可がまだです</b><ul><li>下のスイッチをオンにすると、ブラウザに確認が出ます。「許可」を選んでください。</li></ul></div>' +
-    '<div class="btns" style="margin-top:0"><button class="btn primary" id="pushAllow">ブラウザの許可を出す</button></div>';
+  else if (!on) pushState = '<div class="note" style="margin-top:10px">いま通知は<b>オフ</b>です。スイッチをオンにすると届きます。</div>';
+  else if (perm === 'granted') pushState = '<div class="okline">✓ 通知はオンです。アプリを閉じていても届きます</div>';
+  else if (perm === 'denied') pushState = '<div class="notice"><b>ブラウザの許可が必要です</b><ul><li>ブラウザの設定 → サイトの設定 → 通知 で、このサイトを「許可」にしてください。</li></ul></div>' +
+    '<div class="btns" style="margin-top:0"><button class="btn" id="pushAllow">もう一度ためす</button></div>';
+  else pushState = '<div class="btns" style="margin-top:0"><button class="btn primary" id="pushAllow">ブラウザの許可を出す</button></div>';
 
   var idBox = '';
   if (isAdmin) {
@@ -1532,13 +1551,10 @@ function notifPanelHTML(){
   return '<div class="switch"><div><div class="lab">通知する時刻</div><div class="sub">前日に推しの予定があるとき、この時刻にお知らせします（分まで指定できます）</div></div>' +
     '<input type="time" id="ntime" class="selhour" value="' + esc(tm) + '" step="60" aria-label="通知する時刻"></div>' +
     '<div class="kv"><span>いまの設定</span><b id="ntimeNow">' + esc(tm) + '</b></div>' +
-    '<div class="btns" style="margin-top:8px">' +
-      ['18:00','19:00','20:00','21:00','22:00','23:00'].map(function(t){
-        return '<button type="button" class="btn tiny" data-ntime="' + t + '">' + t + '</button>';
-      }).join('') + '</div>' +
-    '<div class="note" style="margin-top:8px">1分単位で指定できます（例：21:07）。上のボタンはよく使う時刻のショートカットです。' +
+
+    '<div class="note" style="margin-top:8px">1分単位で指定できます（例：21:07）。' +
       '<br>深夜0時台に受け取りたい場合は 00:xx を選ぶと「当日の予定」として届きます。</div>' +
-    '<div class="switch"><div><div class="lab">この端末でも通知する</div><div class="sub">アプリを開いているあいだ、同じ時刻にブラウザ通知を出します</div></div>' +
+    '<div class="switch"><div><div class="lab">通知を受け取る</div><div class="sub">オンにすると、前日の設定時刻に推しの予定をお知らせします</div></div>' +
     '<button class="tgl" id="swNotif" aria-pressed="' + notifOn() + '" aria-label="通知のオン・オフ"></button></div>' +
     pushState + idBox;
 }
@@ -1757,6 +1773,8 @@ function bindSet(){
   var sn = $('#swNotif');
   if (sn) sn.addEventListener('click', function(){
     var turningOff = notifOn();
+    /* 見た目を先に切り替えて、反応が無いように見えないようにする */
+    this.setAttribute('aria-pressed', String(!turningOff));
     var p = turningOff ? disablePush() : enablePush();
     p.then(function(){ renderSet(); });
   });
