@@ -1443,29 +1443,24 @@ function accHTML(key, title, sub, body, dflt){
 function notifOn(){
   try { return localStorage.getItem(STORE + '.notif') === '1'; } catch(e){ return false; }
 }
+/* 通知する時刻（分単位）。既定は 21:00 */
+function notifTime(){
+  var t = '21:00';
+  try { t = localStorage.getItem(STORE + '.notiftime') || t; } catch(e){}
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) t = '21:00';
+  return t;
+}
+function setNotifTime(t){
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(t)) t = '21:00';
+  try { localStorage.setItem(STORE + '.notiftime', t); } catch(e){}
+}
 function notifHour(){
-  var v = 21;
-  try { v = parseInt(localStorage.getItem(STORE + '.notifhour') || '21', 10); } catch(e){}
-  if (!(v >= 18 && v <= 24)) v = 21;
-  return v;
+  return parseInt(notifTime().slice(0, 2), 10);
 }
-function setNotifHour(v){
-  v = parseInt(v, 10);
-  if (!(v >= 18 && v <= 24)) v = 21;
-  try { localStorage.setItem(STORE + '.notifhour', String(v)); } catch(e){}
-}
-function hourLabel(h){ return h === 24 ? '0:00（深夜）' : h + ':00'; }
-function restKeySet(){
-  try { return localStorage.getItem(STORE + '.osrest') === '1'; } catch(e){ return false; }
-}
-function setRestKeySet(on){
-  try { on ? localStorage.setItem(STORE + '.osrest', '1') : localStorage.removeItem(STORE + '.osrest'); } catch(e){}
-}
+function timeLabelJP(t){ return t; }
 function notifPanelHTML(){
   var perm = push.permission();
-  var hour = notifHour();
-  var opts = '';
-  for (var h = 18; h <= 24; h++) opts += '<option value="' + h + '"' + (h === hour ? ' selected' : '') + '>' + hourLabel(h) + '</option>';
+  var tm = notifTime();
 
   var pushState;
   if (!push.on()) pushState = '<div class="notice"><b>まだ準備中です</b><ul><li>管理者が設定すると、アプリを閉じていても届くようになります。</li></ul></div>';
@@ -1484,15 +1479,19 @@ function notifPanelHTML(){
         (push.on() ? '<button class="btn" id="osSync">いま同期する</button>' : '') + '</div>' +
       '<div class="field" style="margin:14px 0 8px"><label for="osRest">OneSignal REST API Key（送信用・非公開）</label>' +
         '<input id="osRest" type="password" placeholder="' + (restKeySet() ? '設定済み（変更するときだけ入力）' : 'REST API Key を貼り付け') + '"></div>' +
-      '<div class="btns" style="margin-top:0"><button class="btn" id="osRestSave">RESTキーを保存</button></div>' +
+      '<div class="btns" style="margin-top:0"><button class="btn primary" id="osRestSave">RESTキーを保存</button>' +
+        (restKeySet() ? '<button class="btn" id="osRestTest">設定を確認</button>' : '') + '</div>' +
+      '<div class="note" id="osRestMsg">' + (restKeySet() ? '✓ RESTキーは保存済みです' : 'まだ保存されていません。上の欄に貼り付けて保存してください。') + '</div>' +
       '<div class="note" id="osMsg">App ID の入手方法は <a href="push-setup.html" target="_blank" rel="noopener">「プッシュ通知の設定」</a> にまとめてあります。' +
         '<br><b>GitHub のファイル設定は不要です。</b>Supabase の中で毎正時に送信します。</div>';
   } else {
     idBox = '<div class="note" style="margin-top:14px">アプリを閉じていても届く通知は、管理者が設定すると自動で有効になります。あなたが何か入力する必要はありません。</div>';
   }
 
-  return '<div class="switch"><div><div class="lab">通知する時刻</div><div class="sub">前日に推しの予定があるとき、この時刻にお知らせします</div></div>' +
-    '<select id="notifHour" class="selhour">' + opts + '</select></div>' +
+  return '<div class="switch"><div><div class="lab">通知する時刻</div><div class="sub">前日に推しの予定があるとき、この時刻にお知らせします（分まで指定できます）</div></div>' +
+    '<input type="time" id="notifTime" class="selhour" value="' + esc(tm) + '" min="18:00" max="23:59" step="60"></div>' +
+    '<div class="note" style="margin-top:8px">18:00〜23:59 のあいだで1分単位に設定できます。初期値は 21:00 です。' +
+      '（深夜0時台に受け取りたい場合は 00:xx を選ぶと「当日の予定」として届きます）</div>' +
     '<div class="switch"><div><div class="lab">この端末でも通知する</div><div class="sub">アプリを開いているあいだ、同じ時刻にブラウザ通知を出します</div></div>' +
     '<button class="tgl" id="swNotif" aria-pressed="' + (notifOn() && perm === 'granted') + '" aria-label="通知"></button></div>' +
     pushState + idBox;
@@ -1641,13 +1640,15 @@ function bindSet(){
     me = null; isAdmin = false; adminPass = ''; save(); syncChrome(); renderAll(); openGate();
   });
   $('#btnRefresh2').addEventListener('click', doRefresh);
-  var nh = $('#notifHour');
-  if (nh) nh.addEventListener('change', function(){
-    setNotifHour(this.value);
-    toast('通知する時刻を ' + hourLabel(notifHour()) + ' にしました');
-    if (push.on()) push.sync();
-    maybeNotify();
-  });
+  var nh = $('#notifTime');
+  if (nh) {
+    nh.addEventListener('change', function(){
+      setNotifTime(this.value);
+      toast('通知する時刻を ' + notifTime() + ' にしました');
+      if (push.on()) push.sync();
+      maybeNotify();
+    });
+  }
   var osSave = $('#osSave');
   if (osSave) osSave.addEventListener('click', function(){
     var id = $('#osId').value.trim();
@@ -1674,6 +1675,15 @@ function bindSet(){
       $('#osRest').value = '';
       renderSet(); toast('RESTキーを保存しました。これで自動送信が動きます');
     }).catch(function(e){ toast('保存できませんでした：' + friendlyErr(e.message)); });
+  });
+  var ort = $('#osRestTest');
+  if (ort) ort.addEventListener('click', function(){
+    cloud.rpc('config_get', {}).then(function(cfg){
+      var box = $('#osRestMsg');
+      if (box) box.textContent = cfg && cfg.has_rest_key ? '✓ サーバーに保存されています' : '✗ サーバーに届いていません。もう一度保存してください';
+      setRestKeySet(!!(cfg && cfg.has_rest_key));
+      toast(cfg && cfg.has_rest_key ? 'サーバーに保存されています' : 'サーバーに届いていません');
+    }).catch(function(e){ toast('確認できません：' + friendlyErr(e.message)); });
   });
   var osSync = $('#osSync');
   if (osSync) osSync.addEventListener('click', function(){ push.sync(); toast('同期しました'); });
@@ -1975,24 +1985,26 @@ function maybeNotify(){
   if (!notifOn()) return;
   if (!me || !me.oshi.length) return;
   var now = new Date();
-  var h = now.getHours();
+  var hhmm = pad(now.getHours()) + ':' + pad(now.getMinutes());
   var todayKey = ymd(now);
-  var nHour = notifHour();
+  var want = notifTime();
+  /* 24時以降の設定（00:xx）は当日扱い、それ以外は前日扱い */
+  var isLate = now.getHours() < 6;
 
-  if (h >= nHour && nHour <= 23 || (nHour === 24 && h >= 0 && h < 6)) {
+  if (hhmm === want) {
     var tk = 'n.prev.' + todayKey;
     if (!notifFlag(tk)) {
-      var tm = events.filter(function(e){ return daysFrom(e.date) === 1 && isOshiEvent(e); }).sort(sortEv);
+      var tm = events.filter(function(e){ return daysFrom(e.date) === (isLate ? 0 : 1) && isOshiEvent(e); }).sort(sortEv);
       if (tm.length) {
         var e0 = tm[0];
-        fireNotify('明日、推しの予定があります',
+        fireNotify(isLate ? '今日、推しの予定があります' : '明日、推しの予定があります',
           e0.title + '\n' + evLine(e0) + (tm.length > 1 ? '\nほか' + (tm.length - 1) + '件' : ''),
           'kawarabo-prev');
         setNotifFlag(tk, true);
       }
     }
   }
-  if (h >= 8) {
+  if (hhmm === '08:00') {
     var dk = 'n.day.' + todayKey;
     if (!notifFlag(dk)) {
       var td = events.filter(function(e){ return daysFrom(e.date) === 0 && isOshiEvent(e); }).sort(sortEv);
@@ -2237,8 +2249,9 @@ const push = {
     if (!this.on()) return;
     this.init();
     if (!me) return;
-    var hour = String(notifHour());
-    var tags = { notif_hour: hour, push_on: notifOn() ? '1' : '0' };
+    var tstr = notifTime();
+    var hour = String(parseInt(tstr.slice(0, 2), 10));
+    var tags = { notif_hour: hour, notif_time: tstr.replace(':', ''), push_on: notifOn() ? '1' : '0' };
     GKEYS.forEach(function(k){
       tags['g_' + k] = oshiGroups().has(k) ? '1' : '0';
     });
