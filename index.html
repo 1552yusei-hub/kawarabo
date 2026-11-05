@@ -1836,7 +1836,9 @@ function bindSet(){
       toast('バックアップを保存しました');
     });
     $('#btnAdminOut').addEventListener('click', function(){
-      isAdmin = false; adminPass = ''; $('#btnAdd').hidden = true; renderSet(); toast('管理者ログアウトしました');
+      isAdmin = false; adminPass = ''; $('#btnAdd').hidden = true;
+      try { sessionStorage.removeItem(STORE + '.admp'); } catch(e){}
+      renderSet(); toast('管理者ログアウトしました');
     });
     if (cloud.on()) {
       var reload = $('#accReload');
@@ -1849,7 +1851,13 @@ function bindSet(){
       var id = $('#aId').value.trim(), pw = $('#aPw').value;
       if (id !== CONFIG.adminId) { $('#aErr').textContent = '管理者番号が違います'; return; }
       adminPass = pw;
-      var done = function(){ isAdmin = true; $('#btnAdd').hidden = false; renderSet(); toast('管理者としてログインしました'); };
+      var done = function(){
+        isAdmin = true; adminPass = pw;
+        try { sessionStorage.setItem(STORE + '.admp', pw); } catch(e){}
+        $('#btnAdd').hidden = false; renderSet();
+        toast('管理者としてログインしました');
+        afterAdminLogin();
+      };
       if (cloud.on()) {
         cloud.rpc('admin_list', { p_pass:pw }).then(done).catch(function(err){
           $('#aErr').textContent = friendlyErr(err.message);
@@ -2264,6 +2272,7 @@ function pushCloudEvents(silent){
              groups:e.groups || [], type:e.type || 'live', title:e.title,
              venue:e.venue || '', note:e.note || '', source:e.source || '' };
   });
+  if (!payload.length) { toast('予定が0件のため公開を中止しました'); return; }
   cloud.rpc('events_save', { p_pass:adminPass, p_events:payload }).then(function(r){
     pendingSet(false); cloudAlert(null);
     setCloudVer(r && r.ver ? r.ver : '');
@@ -2280,6 +2289,35 @@ function pushCloudEvents(silent){
   });
 }
 
+
+
+/* ---------- 管理者ログインを再読み込み後も維持する ---------- */
+function afterAdminLogin(){
+  if (!cloud.on()) return;
+  cloud.rpc('events_get', {}).then(function(r){
+    var list = (r && Array.isArray(r.events)) ? r.events : [];
+    if (!list.length) {
+      /* クラウドが空なら、いま手元にある予定をそのまま公開する */
+      toast('クラウドが空でした。いまの予定を公開します…');
+      pushCloudEvents(false);
+    } else {
+      pullCloudEvents(function(n){ if (typeof n === 'number' && n > 0) toast('最新の予定に更新しました（' + n + '件）'); });
+    }
+  }).catch(function(){});
+}
+function restoreAdmin(){
+  if (!cloud.on() || isAdmin) return;
+  var pw = '';
+  try { pw = sessionStorage.getItem(STORE + '.admp') || ''; } catch(e){ pw = ''; }
+  if (!pw) return;
+  cloud.rpc('admin_list', { p_pass:pw }).then(function(){
+    isAdmin = true; adminPass = pw;
+    var b = document.getElementById('btnAdd');
+    if (b) b.hidden = false;
+    try { renderSet(); } catch(e){}
+    afterAdminLogin();
+  }).catch(function(){ try { sessionStorage.removeItem(STORE + '.admp'); } catch(e){} });
+}
 
 /* ---------- 接続診断：どこで止まっているかを画面に出す ---------- */
 function runDiag(){
@@ -2626,6 +2664,7 @@ if (!me) {
   if (cloud.on() && me.token && me.token !== 'local') loadFriends();
   maybeNotify();
   setInterval(maybeNotify, 60 * 1000);
+  restoreAdmin();
   retryPending();
   setInterval(retryPending, 60 * 1000);
   var stale = !lastRefresh || (Date.now() - lastRefresh) > 6 * 3600 * 1000;
